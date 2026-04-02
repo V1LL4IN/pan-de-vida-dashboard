@@ -1,0 +1,1164 @@
+import { useState, useEffect, useCallback } from "react";
+
+// ─────────────────────────────────────────────────────────────
+// PAN DE VIDA FOUNDATION — DASHBOARD 2026
+// Antigravity-inspired redesign — no emojis, clean SVG icons
+// ─────────────────────────────────────────────────────────────
+
+// ─── FALLBACK DATA (mirrors public/data/dashboard.json schema) ─
+// Used when the JSON hasn't been fetched yet or fetch fails.
+const FALLBACK_DATA = {
+  overview:  { totalBeneficiaries: 2337, totalAccounts: 623, newFamilies: 23, totalDeliveries: 2437 },
+  hotMeals:  { plates: 882, families: 100 },
+  groceries: { bags: 133, ub: 80, avgCost: 12.70, totalCost: 1118.70, monthly: [44, 133, 45, 0, 0, 0] },
+  clothing:  { donations: 96, ub: 39 },
+  health: {
+    totalServices: 266, totalUB: 140,
+    clinic: { consultations: 175, ub: 86, paidVozManos: 3571.50, paidPDV: 62.00 },
+    other:  { aids: 91, ub: 75, invested: 341.80 },
+    monthly: [84, 91, 0, 0, 0, 0],
+  },
+  education: { schoolKits: 1, schoolKitCost: 13.75, backpacks: 1, backpackCost: 8.75, vbsCamps: 9 },
+  shelter:   { services: 143 },
+  lifeFarms: {
+    idealFarm:      { goal: 30, done: 42 },
+    fullSizeFarm:   { goal: 10, done: 10 },
+    totalChampions: { goal: 40, done: 52 },
+    basicFarm:      { goal: 118, done: 154 },
+    multiplication: { goal: 108, done: 112 },
+  },
+  meps: {
+    total: 286, active: 17, inactive: 76, finished: 113, aborted: 80, marketReady: 8,
+    byLocation: { quito: 286, otavalo: 285, mantaRiobamba: 1 },
+  },
+  sharkTank:    null,
+  evangelism:   { bibles: 34, vbsCamps: 9, childrenVBS: 228, personasAlcanzadas: 593 },
+  beneficiaries: {
+    combined: { accounts: 623, beneficiaries: 2337, girls: 359, boys: 364, families: 23, newUB: 557 },
+    quito:    { accounts: 349, beneficiaries: 1166, girls: 212, boys: 215, families: 11, newUB: 415 },
+    imbabura: { accounts: 274, beneficiaries: 1171, girls: 147, boys: 149, families: 12, newUB: 142 },
+  },
+};
+
+const C = {
+  blue:      "#1a73e8",
+  blueBg:    "#e8f0fe",
+  blueLight: "#4285f4",
+  green:     "#1e8e3e",
+  greenBg:   "#e6f4ea",
+  yellow:    "#f29900",
+  yellowBg:  "#fef7e0",
+  red:       "#d93025",
+  redBg:     "#fce8e6",
+  orange:    "#e8710a",
+  orangeBg:  "#fef3e8",
+  purple:    "#8430ce",
+  purpleBg:  "#f3e8fd",
+  teal:      "#007b83",
+  tealBg:    "#e4f7fb",
+  pink:      "#c0006a",
+  pinkBg:    "#fce4ec",
+  text1:     "#202124",
+  text2:     "#3c4043",
+  text3:     "#5f6368",
+  text4:     "#9aa0a6",
+  border:    "rgba(0,0,0,0.06)",
+  bg:        "#EEEEF5",
+  white:     "#ffffff",
+};
+
+const i18n = {
+  en: {
+    overview: "Overview",
+    level1: "Level 1", level1Name: "Relief", level1Desc: "Immediate assistance",
+    level2: "Level 2", level2Name: "Restoration", level2Desc: "Rebuilding lives",
+    level3: "Level 3", level3Name: "Development", level3Desc: "Sustainable growth",
+    evangelism: "Evangelism", evangelismDesc: "Across all levels",
+    beneficiaries: "Beneficiaries", beneficiariesDesc: "People we serve",
+    lastUpdated: "Last updated", dataSynced: "Data synced",
+    totalBeneficiaries: "Active Beneficiaries (Individuals)", totalAccounts: "Active Family Accounts (Families)",
+    newFamilies: "New Families Added This Year", totalDeliveries: "Total # of Services Delivered",
+    impactByLevel: "Impact by Level",
+    hotMeals: "Hot Meals", hotMealsDelivered: "How much hot meal - $ (add report later)",
+    familiesHotMeals: "Families served",
+    groceries: "Food kits", groceryBags: "Food kits delivered",
+    ubGrocery: "Families served", avgCost: "Avg. unit cost",
+    totalCost: "Total estimated cost",
+    clothing: "Clothing", clothingDonations: "Clothing distributed to families",
+    ubClothing: "Families served",
+    emergency: "Emergency", christmas: "Christmas",
+    christmasHotMeals: "Hot meal plates distributed",
+    christmasToys: "Toys distributed",
+    christmasCandy: "Candy bags distributed",
+    noDataYet: "No data recorded yet for this period",
+    monthlyDistribution: "Monthly Distribution",
+    jan: "Jan", feb: "Feb", mar: "Mar", apr: "Apr", may: "May", jun: "Jun",
+    health: "Health", education: "Education", shelter: "Living Conditions",
+    medicalAttention: "Medical appointments", ubMedical: "Individuals served",
+    paidByVozManos: "Paid by Voz y Manos", paidByPDV: "Paid by Pan de Vida",
+    otherMedicalAidsTitle: "Other Medical Assistance",
+    otherMedicalAids: "Medical Assistance (Specialist appointment, medicine, etc)", ubOtherMedical: "Individuals served",
+    investedOther: "Invested in other medical",
+    totalHealthServices: "Total Health Services Provided", totalHealthUB: "Individuals served",
+    schoolKits: "School kits distributed", backpacks: "Backpacks distributed",
+    totalEducationServices: "Total Education Services Provided", totalEducationUB: "Individuals served",
+    unitCost: "Unit cost", totalCostLabel: "Total cost",
+    vbsCamps: "VBS camps held", shelterServices: "Total shelter services",
+    lifeFarms: "Life Farms", sharkTank: "Shark Tank PDV",
+    revolvingFund: "Revolving Fund",
+    idealFarm: "Ideal Life Farm",
+    idealFarmDesc: "Seed banks + compost + animals + others",
+    fullSizeFarm: "Full Size Life Farm",
+    fullSizeFarmDesc: "No additionals",
+    totalChampions: "Total Champions",
+    basicFarm: "Basic Life Farms",
+    basicFarmDesc: "New cases + seedling production",
+    multiplicationFarm: "Multiplication",
+    multiplicationDesc: "Selected cases + support",
+    goal: "Goal", done: "Done",
+    totalMEPs: "Total MEPs", active: "Active", inactive: "Inactive",
+    finished: "Finished", aborted: "Aborted", marketReady: "Market Ready",
+    sharkTankPlaceholder: "Data coming soon — this program's metrics are being integrated.",
+    viewDetail: "View detail",
+    byLocation: "By Location",
+    quito: "Quito", otavalo: "Otavalo", mantaRiobamba: "Manta & Riobamba",
+    biblesDelivered: "Bibles distributed",
+    vbsCampsHeld: "VBS CAMP HELD",
+    childrenVBS: "Kids served",
+    personasAlcanzadas: "Individuals reached by the gospel",
+    activeAccounts: "Active accounts", activeBeneficiaries: "Active beneficiaries",
+    activeGirls: "Active girls", activeBoys: "Active boys",
+    acceptedFamilies: "New families this year", acceptedUB: "New Individuals",
+    combined: "Combined", imbabura: "Imbabura",
+    statusDist: "Status Distribution",
+    serviceProviders: "Service providers include Joshua Expeditions, Staff PDV, Grace Baptist Church Wilmington, and New Life Church.",
+    championsLabel: "Champions (Full Size)",
+    growthLabel: "Growth Pipeline",
+    clinicTitle: "Medical Care Provided By Clinica la Y",
+  },
+  es: {
+    overview: "Resumen",
+    level1: "Nivel 1", level1Name: "Alivio", level1Desc: "Asistencia inmediata",
+    level2: "Nivel 2", level2Name: "Restauración", level2Desc: "Reconstruyendo vidas",
+    level3: "Nivel 3", level3Name: "Desarrollo", level3Desc: "Crecimiento sostenible",
+    evangelism: "Evangelización", evangelismDesc: "En todos los niveles",
+    beneficiaries: "Beneficiarios", beneficiariesDesc: "Personas que servimos",
+    lastUpdated: "Última actualización", dataSynced: "Datos sincronizados",
+    totalBeneficiaries: "Beneficiarios Activos (Individuos)", totalAccounts: "Cuentas Familiares Activas (Familias)",
+    newFamilies: "Nuevas Familias Añadidas Este Año", totalDeliveries: "Total de Servicios Entregados",
+    impactByLevel: "Impacto por Nivel",
+    hotMeals: "Comida Caliente", hotMealsDelivered: "Valor de comidas calientes - $ (añadir reporte después)",
+    familiesHotMeals: "Familias servidas",
+    groceries: "Víveres", groceryBags: "Víveres entregados",
+    ubGrocery: "Familias servidas", avgCost: "Costo promedio",
+    totalCost: "Costo total estimado",
+    clothing: "Ropa", clothingDonations: "Ropa distribuida a familias",
+    ubClothing: "Familias servidas",
+    emergency: "Emergencia", christmas: "Navidad",
+    christmasHotMeals: "Platos de comida caliente distribuidos",
+    christmasToys: "Juguetes distribuidos",
+    christmasCandy: "Fundas de caramelos distribuidas",
+    noDataYet: "Sin datos registrados aún para este período",
+    monthlyDistribution: "Distribución Mensual",
+    jan: "Ene", feb: "Feb", mar: "Mar", apr: "Abr", may: "May", jun: "Jun",
+    health: "Salud", education: "Educación", shelter: "Condiciones de Vida",
+    medicalAttention: "Citas médicas", ubMedical: "Individuos servidos",
+    paidByVozManos: "Pagado por Voz y Manos", paidByPDV: "Pagado por Pan de Vida",
+    otherMedicalAidsTitle: "Otra asistencia médica",
+    otherMedicalAids: "Asistencia médica (Citas de especialidad, medicinas, etc.)", ubOtherMedical: "Individuos servidos",
+    investedOther: "Invertido en otras ayudas",
+    totalHealthServices: "Total de servicios de salud provistos", totalHealthUB: "Individuos servidos",
+    schoolKits: "Kits escolares distribuidos", backpacks: "Mochilas distribuidas",
+    totalEducationServices: "Total de servicios educativos provistos", totalEducationUB: "Individuos servidos",
+    unitCost: "Costo unitario", totalCostLabel: "Costo total",
+    vbsCamps: "Campamentos EBV", shelterServices: "Total servicios vivienda",
+    lifeFarms: "Huertos de Vida", sharkTank: "Shark Tank PDV",
+    revolvingFund: "Fondo Rotativo",
+    idealFarm: "Huerto Ideal",
+    idealFarmDesc: "Banco semillas + compost + animales + otros",
+    fullSizeFarm: "Huerto Completo",
+    fullSizeFarmDesc: "Sin adicionales",
+    totalChampions: "Total Campeones",
+    basicFarm: "Huertos Básicos",
+    basicFarmDesc: "Nuevos casos + producción plántulas",
+    multiplicationFarm: "Multiplicación",
+    multiplicationDesc: "Casos seleccionados + apoyo",
+    goal: "Meta", done: "Realizado",
+    totalMEPs: "Total MEPs", active: "Activos", inactive: "Inactivos",
+    finished: "Finalizados", aborted: "Cancelados", marketReady: "Listos para Mercado",
+    sharkTankPlaceholder: "Datos próximamente — las métricas de este programa están siendo integradas.",
+    viewDetail: "Ver detalle",
+    byLocation: "Por Ubicación",
+    quito: "Quito", otavalo: "Otavalo", mantaRiobamba: "Manta y Riobamba",
+    biblesDelivered: "Biblias distribuidas",
+    vbsCampsHeld: "CAMPAMENTO EBV REALIZADO",
+    childrenVBS: "Niños servidos",
+    personasAlcanzadas: "Individuos alcanzados por el evangelio",
+    activeAccounts: "Cuentas activas", activeBeneficiaries: "Beneficiarios activos",
+    activeGirls: "Niñas activas", activeBoys: "Niños activos",
+    acceptedFamilies: "Nuevas familias este año", acceptedUB: "Nuevos Individuos",
+    combined: "Combinado", imbabura: "Imbabura",
+    statusDist: "Distribución por Estado",
+    serviceProviders: "Proveedores de servicio: Joshua Expeditions, Staff PDV, Grace Baptist Church Wilmington y New Life Church.",
+    championsLabel: "Campeones (Tamaño Completo)",
+    growthLabel: "Pipeline de Crecimiento",
+    clinicTitle: "Atención Médica Provista por Clínica la Y",
+  },
+};
+
+// ─── COLOR HELPERS ────────────────────────────────────────────
+
+const bgOf = (color) => ({
+  [C.blue]:      C.blueBg,
+  [C.blueLight]: C.blueBg,
+  [C.green]:     C.greenBg,
+  [C.red]:       C.redBg,
+  [C.yellow]:    C.yellowBg,
+  [C.orange]:    C.orangeBg,
+  [C.purple]:    C.purpleBg,
+  [C.teal]:      C.tealBg,
+  [C.pink]:      C.pinkBg,
+  [C.text1]:     "#e8eaed",
+})[color] ?? C.blueBg;
+
+// ─── SVG ICONS (no emojis) ────────────────────────────────────
+
+const Icon = {
+  overview:      () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg>,
+  relief:        () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18"><path d="M10 3v14M3 10h14"/></svg>,
+  restoration:   () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18"><path d="M4 10a6 6 0 1 1 4 5.66"/><path d="M4 14v-4h4"/></svg>,
+  development:   () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18"><polyline points="3,13 7,8 11,11 17,5"/><polyline points="14,5 17,5 17,8"/></svg>,
+  evangelism:    () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18"><path d="M12 2a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1V4a2 2 0 0 1 2-2z"/><path d="M9 10h6M9 13h4"/></svg>,
+  beneficiaries: () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18"><circle cx="8" cy="7" r="3"/><path d="M2 17c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="15" cy="7" r="2"/><path d="M17 17c0-2.2-1.3-4-3-5"/></svg>,
+  menu:          () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><line x1="3" y1="6" x2="17" y2="6"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="14" x2="17" y2="14"/></svg>,
+  // Stat card icons
+  people:        () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><circle cx="8" cy="7" r="3"/><path d="M2 17c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="15" cy="7" r="2"/><path d="M17 17c0-2.2-1.3-4-3-5"/></svg>,
+  folder:        () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M2 6a2 2 0 0 1 2-2h3.17a2 2 0 0 1 1.42.59L9.83 6H16a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z"/></svg>,
+  home:          () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M8 18v-6h4v6"/></svg>,
+  box:           () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M16 7l-6 3-6-3M10 10v8M2 7l8-5 8 5v7l-8 5-8-5V7z"/></svg>,
+  book:          () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M4 2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><line x1="8" y1="7" x2="12" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>,
+  tent:          () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M1 17L10 3l9 14H1z"/><path d="M8 17v-5h4v5"/></svg>,
+  child:         () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><circle cx="10" cy="6" r="3"/><path d="M5 17c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg>,
+  chart:         () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><polyline points="3,13 7,8 11,11 17,5"/></svg>,
+  check:         () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><polyline points="4,10 8,14 16,6"/></svg>,
+  star:          () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><polygon points="10,2 12.5,8 19,8.5 14,13 15.9,19.5 10,16 4.1,19.5 6,13 1,8.5 7.5,8"/></svg>,
+  money:         () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><circle cx="10" cy="10" r="8"/><path d="M10 6v8M8 8.5c0-1.1.9-2 2-2s2 .9 2 2-1 1.5-2 2-2 .9-2 2 .9 2 2 2 2-.9 2-2"/></svg>,
+  cart:          () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M1 1h3l2 9h10l2-6H5"/><circle cx="8" cy="16" r="1.5"/><circle cx="15" cy="16" r="1.5"/></svg>,
+  bag:           () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><rect x="3" y="7" width="14" height="11" rx="2"/><path d="M7 7V5a3 3 0 0 1 6 0v2"/></svg>,
+  doctor:        () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><rect x="4" y="2" width="12" height="16" rx="2"/><path d="M8 8h4M10 6v4M7 14h6"/></svg>,
+  leaf:          () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M17 3C11 3 5 6 4 14c3-2 6-3 9-1 1.5.9 3 1.5 4 1.5V3z"/><path d="M4 14c0 0 0 2 2 3"/></svg>,
+  backpack:      () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><rect x="5" y="4" width="10" height="14" rx="3"/><path d="M8 4V3a2 2 0 0 1 4 0v1"/><path d="M5 10h10"/></svg>,
+  shirt:         () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M1 5l4-3 2 2a3 3 0 0 0 6 0l2-2 4 3-2 3h-3v10H5V8H2L1 5z"/></svg>,
+  dollar:        () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M10 2v16M7 5.5A3 3 0 0 1 10 4c1.66 0 3 1.12 3 2.5S11.66 9 10 9s-3 1.12-3 2.5S8.34 14 10 14c1.66 0 3-.84 3-2.5"/></svg>,
+  warn:          () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M10 3L18 17H2L10 3z"/><line x1="10" y1="9" x2="10" y2="12"/><circle cx="10" cy="14.5" r="0.5" fill="currentColor"/></svg>,
+};
+
+// ─── PRIMITIVES ───────────────────────────────────────────────
+
+function Card({ children, style, className = "" }) {
+  return (
+    <div className={`pdv-card ${className}`} style={style}>
+      {children}
+    </div>
+  );
+}
+
+function StatCard({ label, value, prefix = "", color = C.blue, iconEl, delay = 0 }) {
+  const [v, setV] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setV(true), delay);
+    return () => clearTimeout(t);
+  }, [delay]);
+
+  return (
+    <Card style={{
+      opacity: v ? 1 : 0,
+      transform: v ? "translateY(0)" : "translateY(10px)",
+      transition: "opacity 0.3s cubic-bezier(0.2,0,0,1), transform 0.3s cubic-bezier(0.2,0,0,1)",
+    }}>
+      <div className="pdv-stat-card">
+        <div>
+          <div className="pdv-stat-label">{label}</div>
+          <div className="pdv-stat-value" style={{ color }}>
+            {prefix}{typeof value === "number" ? value.toLocaleString() : value}
+          </div>
+        </div>
+        {iconEl && (
+          <div className="pdv-stat-icon" style={{ background: bgOf(color), color }}>
+            {iconEl}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function ProgressBar({ label, goal, done, color = C.blue, description }) {
+  const [a, setA] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setA(true), 200);
+    return () => clearTimeout(t);
+  }, []);
+  const pct = Math.min(Math.round((done / goal) * 100), 200);
+  const over = done >= goal;
+
+  return (
+    <Card style={{ padding: "20px 24px" }}>
+      <div className="pdv-progress-header">
+        <div>
+          <div className="pdv-progress-label">{label}</div>
+          {description && <div className="pdv-progress-desc">{description}</div>}
+        </div>
+        <div className="pdv-progress-values">
+          <span className="pdv-progress-done" style={{ color: over ? C.green : C.text1 }}>{done}</span>
+          <span className="pdv-progress-goal"> / {goal}</span>
+        </div>
+      </div>
+      <div className="pdv-progress-track">
+        <div
+          className="pdv-progress-fill"
+          style={{
+            background: over ? C.green : color,
+            width: a ? `${Math.min(pct, 100)}%` : "0%",
+          }}
+        />
+      </div>
+      <div className="pdv-progress-pct" style={{ color: over ? C.green : C.text4 }}>{pct}%</div>
+    </Card>
+  );
+}
+
+function BarChart({ data, color = C.blue }) {
+  const [a, setA] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setA(true), 300);
+    return () => clearTimeout(t);
+  }, []);
+  const mx = Math.max(...data.map(d => d.value), 1);
+
+  return (
+    <div className="pdv-barchart">
+      {data.map((d, i) => (
+        <div key={i} className="pdv-bar-col">
+          {d.value > 0 && <span className="pdv-bar-val">{d.value}</span>}
+          <div
+            className="pdv-bar"
+            style={{
+              background: d.value ? (d.color || color) : "rgba(0,0,0,0.08)",
+              height: a ? `${d.value ? Math.max((d.value / mx) * 120, 6) : 3}px` : "0px",
+              opacity: d.value ? 1 : 0.4,
+            }}
+          />
+          <span className="pdv-bar-lbl">{d.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DonutChart({ segments, size = 140, stroke = 20 }) {
+  const [a, setA] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setA(true), 300);
+    return () => clearTimeout(t);
+  }, []);
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const total = segments.reduce((s, seg) => s + seg.value, 0);
+  let off = 0;
+
+  return (
+    <div className="pdv-donut-wrap">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth={stroke} />
+        {segments.map((seg, i) => {
+          const dash = (seg.value / total) * circ;
+          const cur = off;
+          off += dash;
+          return (
+            <circle
+              key={i} cx={size / 2} cy={size / 2} r={r} fill="none"
+              stroke={seg.color} strokeWidth={stroke} strokeLinecap="butt"
+              strokeDasharray={`${a ? dash : 0} ${circ}`}
+              strokeDashoffset={-cur}
+              transform={`rotate(-90 ${size / 2} ${size / 2})`}
+              style={{ transition: `stroke-dasharray 1s cubic-bezier(0.2,0,0,1) ${i * 80}ms` }}
+            />
+          );
+        })}
+        <text
+          x={size / 2} y={size / 2 + 1}
+          textAnchor="middle" dominantBaseline="middle"
+          style={{ fontSize: 19, fontWeight: 600, fill: "#202124", fontFamily: "'Inter',sans-serif", letterSpacing: "-0.03em" }}
+        >{total}</text>
+      </svg>
+      <div className="pdv-donut-legend">
+        {segments.map((seg, i) => (
+          <div key={i} className="pdv-donut-legend-item">
+            <div className="pdv-donut-legend-dot" style={{ background: seg.color }} />
+            <span className="pdv-donut-legend-label">{seg.label}</span>
+            <span className="pdv-donut-legend-val">{seg.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TabBar({ tabs, active, onChange }) {
+  return (
+    <div className="pdv-tabbar">
+      {tabs.map(tab => (
+        <button
+          key={tab.id}
+          className={`pdv-tab ${active === tab.id ? "active" : ""}`}
+          onClick={() => onChange(tab.id)}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function EmptyState({ message }) {
+  return (
+    <Card>
+      <div className="pdv-empty">
+        <div className="pdv-empty-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.5" width="48" height="48">
+            <rect x="6" y="10" width="36" height="28" rx="4"/>
+            <line x1="15" y1="21" x2="33" y2="21"/>
+            <line x1="15" y1="27" x2="26" y2="27"/>
+          </svg>
+        </div>
+        <div className="pdv-empty-text">{message}</div>
+      </div>
+    </Card>
+  );
+}
+
+function LevelBadge({ level, name, color }) {
+  return (
+    <div className="pdv-level-badge" style={{ background: bgOf(color) }}>
+      <div className="pdv-level-badge-num" style={{ background: color }}>{level}</div>
+      <span className="pdv-level-badge-text" style={{ color }}>{name}</span>
+    </div>
+  );
+}
+
+function SectionTitle({ children, style }) {
+  return <h3 className="pdv-section-title" style={style}>{children}</h3>;
+}
+
+function Grid({ cols = 4, children, style }) {
+  const cls = cols === 2 ? "pdv-grid pdv-grid-2"
+    : cols === 3 ? "pdv-grid pdv-grid-3"
+    : "pdv-grid pdv-grid-4";
+  return <div className={cls} style={style}>{children}</div>;
+}
+
+// ─── NAV ──────────────────────────────────────────────────────
+
+function NavSection({ label }) {
+  return <div className="pdv-nav-section">{label}</div>;
+}
+
+function NavItem({ iconEl, label, sublabel, active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`pdv-nav-item ${active ? "active" : ""}`}
+    >
+      <span className="pdv-nav-icon">{iconEl}</span>
+      <div className="pdv-nav-item-text">
+        <div className="pdv-nav-item-label">{label}</div>
+        {sublabel && <div className="pdv-nav-item-sub">{sublabel}</div>}
+      </div>
+    </button>
+  );
+}
+
+// ─── PAGES ────────────────────────────────────────────────────
+
+// Map: label key → { page, tab? }
+const ITEM_NAV = {
+  hotMeals:    { page: "level1", tab: "hotmeals"  },
+  groceries:   { page: "level1", tab: "groceries" },
+  clothing:    { page: "level1", tab: "clothing"  },
+  totalCost:   { page: "level1", tab: "groceries" },
+  health:      { page: "level2", tab: "health"    },
+  education:   { page: "level2", tab: "education" },
+  shelter:     { page: "level2", tab: "shelter"   },
+  totalHealthUB: { page: "level2", tab: "health"  },
+  lifeFarms:   { page: "level3", tab: "lifefarms" },
+  revolvingFund: { page: "level3", tab: "revolving" },
+  marketReady: { page: "level3", tab: "revolving" },
+  sharkTank:   { page: "level3", tab: "sharktank" },
+};
+
+const LEVEL_NAV = {
+  "1": { page: "level1" },
+  "2": { page: "level2" },
+  "3": { page: "level3" },
+};
+
+function ClickableCard({ children, onClick, style, color, label = "Ver detalle" }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      className="pdv-card pdv-card--clickable"
+      style={{
+        ...style,
+        cursor: "pointer",
+        padding: 0,
+        display: "flex",
+        flexDirection: "column",
+        outline: hov ? `2px solid ${color || "rgba(0,0,0,0.15)"}` : "2px solid transparent",
+        transition: "outline 120ms ease, transform 120ms ease, box-shadow 120ms ease",
+        transform: hov ? "translateY(-2px)" : "translateY(0)",
+        boxShadow: hov ? "0 4px 16px rgba(0,0,0,0.08)" : "none",
+      }}
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+    >
+      <div style={{ flex: 1, padding: "24px 24px 16px" }}>
+        {children}
+      </div>
+      <div style={{
+        borderTop: `1px solid ${hov ? (color ? color + "33" : "rgba(0,0,0,0.08)") : "rgba(0,0,0,0.06)"}`,
+        padding: "10px 20px",
+        display: "flex",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        gap: 5,
+        fontSize: 13,
+        fontWeight: 600,
+        color: hov ? (color || "#5f6368") : "#c0c4c9",
+        transition: "color 140ms ease, border-color 140ms ease",
+        borderBottomLeftRadius: "var(--radius-xl)",
+        borderBottomRightRadius: "var(--radius-xl)",
+        background: hov ? (color ? color + "08" : "rgba(0,0,0,0.02)") : "transparent",
+      }}>
+        {label}
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" width="11" height="11">
+          <path d="M2.5 6h7M6.5 3l3 3-3 3"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function OverviewPage({ t, onNavigate, data }) {
+  const D = data ?? FALLBACK_DATA;
+  const eduTotal = (D.education?.schoolKits ?? 0) + (D.education?.backpacks ?? 0);
+  const lifeFarmsTotal =
+    (D.lifeFarms?.idealFarm?.done      ?? 0) +
+    (D.lifeFarms?.fullSizeFarm?.done   ?? 0) +
+    (D.lifeFarms?.basicFarm?.done      ?? 0) +
+    (D.lifeFarms?.multiplication?.done ?? 0);
+  const totalCostFmt = `$${(D.groceries?.totalCost ?? 0).toLocaleString()}`;
+
+  // label keys matching ITEM_NAV keys
+  const levelSections = [
+    { lvl: "1", name: t.level1Name, color: C.orange, items: [
+      { label: t.hotMeals,    val: D.hotMeals?.plates        ?? 0, navKey: "hotMeals"    },
+      { label: t.groceries,   val: D.groceries?.bags          ?? 0, navKey: "groceries"   },
+      { label: t.clothing,    val: D.clothing?.donations       ?? 0, navKey: "clothing"    },
+      { label: t.totalCost,   val: totalCostFmt,                     navKey: "totalCost"   },
+    ]},
+    { lvl: "2", name: t.level2Name, color: C.blue, items: [
+      { label: t.health,        val: D.health?.totalServices   ?? 0, navKey: "health"       },
+      { label: t.education,     val: eduTotal,                        navKey: "education"    },
+      { label: t.shelter,       val: D.shelter?.services        ?? 0, navKey: "shelter"      },
+      { label: t.totalHealthUB, val: D.health?.totalUB          ?? 0, navKey: "totalHealthUB"},
+    ]},
+    { lvl: "3", name: t.level3Name, color: C.green, items: [
+      { label: t.lifeFarms,     val: lifeFarmsTotal,                  navKey: "lifeFarms"    },
+      { label: t.revolvingFund, val: D.meps?.total              ?? 0, navKey: "revolvingFund"},
+      { label: t.marketReady,   val: D.meps?.marketReady         ?? 0, navKey: "marketReady" },
+      { label: t.sharkTank,     val: "—",                             navKey: "sharkTank"    },
+    ]},
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+      {/* Top summary stats — navigate to beneficiaries */}
+      <Grid cols={4}>
+        {[
+          { label: t.totalBeneficiaries, value: D.overview?.totalBeneficiaries ?? 0, color: C.blue,   icon: <Icon.people />,  nav: { page: "beneficiaries" } },
+          { label: t.totalAccounts,      value: D.overview?.totalAccounts      ?? 0, color: C.teal,   icon: <Icon.folder />,  nav: { page: "beneficiaries" } },
+          { label: t.newFamilies,        value: D.overview?.newFamilies         ?? 0, color: C.green,  icon: <Icon.home />,    nav: { page: "beneficiaries" } },
+          { label: t.totalDeliveries,    value: D.overview?.totalDeliveries     ?? 0, color: C.orange, icon: <Icon.box />,     nav: { page: "level1", tab: "hotmeals" } },
+        ].map((s, i) => (
+          <ClickableCard key={i} color={s.color} label={t.viewDetail} onClick={() => onNavigate(s.nav.page, s.nav.tab)}>
+            <div className="pdv-stat-card">
+              <div>
+                <div className="pdv-stat-label">{s.label}</div>
+                <div className="pdv-stat-value" style={{ color: s.color }}>
+                  {s.value.toLocaleString()}
+                </div>
+              </div>
+              <div className="pdv-stat-icon" style={{ background: bgOf(s.color), color: s.color }}>
+                {s.icon}
+              </div>
+            </div>
+          </ClickableCard>
+        ))}
+      </Grid>
+
+      {/* Impact by Level — each card navigates to the level */}
+      <div>
+        <SectionTitle>{t.impactByLevel}</SectionTitle>
+        <Grid cols={3}>
+          {levelSections.map((sec) => (
+            <div key={sec.lvl} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {/* Level header card — navigates to level page */}
+              <ClickableCard
+                color={sec.color}
+                label={t.viewDetail}
+                style={{ borderLeft: `3px solid ${sec.color}`, paddingBottom: 12 }}
+                onClick={() => onNavigate(LEVEL_NAV[sec.lvl].page)}
+              >
+                <LevelBadge level={sec.lvl} name={sec.name} color={sec.color} />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 8 }}>
+                  {sec.items.map((item, j) => (
+                    <div
+                      key={j}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const nav = ITEM_NAV[item.navKey];
+                        if (nav) onNavigate(nav.page, nav.tab);
+                      }}
+                      style={{
+                        cursor: "pointer",
+                        padding: "6px 8px",
+                        borderRadius: 8,
+                        transition: "background 120ms ease",
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.04)"}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                    >
+                      <div style={{
+                        fontSize: 12, fontWeight: 600, color: C.text4,
+                        marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.06em",
+                      }}>{item.label}</div>
+                      <div style={{
+                        fontSize: 28, fontWeight: 500, color: C.text1, letterSpacing: "-0.03em",
+                      }}>
+                        {typeof item.val === "number" ? item.val.toLocaleString() : item.val}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ClickableCard>
+            </div>
+          ))}
+        </Grid>
+      </div>
+
+      {/* Evangelism — navigate to evangelism page */}
+      <div>
+        <SectionTitle>{t.evangelism}</SectionTitle>
+        <Grid cols={3}>
+          {[
+            { label: t.biblesDelivered, value: D.evangelism?.bibles       ?? 0, icon: <Icon.book /> },
+            { label: t.vbsCampsHeld,    value: D.evangelism?.vbsCamps      ?? 0, icon: <Icon.tent /> },
+            { label: t.childrenVBS,     value: D.evangelism?.childrenVBS   ?? 0, icon: <Icon.child /> },
+          ].map((s, i) => (
+            <ClickableCard key={i} color={C.purple} label={t.viewDetail} onClick={() => onNavigate("evangelism")}>
+              <div className="pdv-stat-card">
+                <div>
+                  <div className="pdv-stat-label">{s.label}</div>
+                  <div className="pdv-stat-value" style={{ color: C.purple }}>
+                    {s.value.toLocaleString()}
+                  </div>
+                </div>
+                <div className="pdv-stat-icon" style={{ background: bgOf(C.purple), color: C.purple }}>
+                  {s.icon}
+                </div>
+              </div>
+            </ClickableCard>
+          ))}
+        </Grid>
+      </div>
+    </div>
+  );
+}
+
+function Level1Page({ t, initialTab = "hotmeals", data }) {
+  const [tab, setTab] = useState(initialTab);
+  const D = data ?? FALLBACK_DATA;
+  return (
+    <div>
+      <LevelBadge level="1" name={t.level1Name} color={C.orange} />
+      <TabBar tabs={[
+        { id: "hotmeals",  label: t.hotMeals  },
+        { id: "groceries", label: t.groceries  },
+        { id: "clothing",  label: t.clothing   },
+        { id: "emergency", label: t.emergency  },
+        { id: "christmas", label: t.christmas  },
+      ]} active={tab} onChange={setTab} />
+
+      {tab === "hotmeals" && (
+        <Grid cols={2}>
+          <StatCard label={t.hotMealsDelivered} value={D.hotMeals?.plates   ?? 0} color={C.red}    iconEl={<Icon.bag />}    delay={0}  />
+          <StatCard label={t.familiesHotMeals}  value={D.hotMeals?.families ?? 0} color={C.orange} iconEl={<Icon.people />} delay={60} />
+        </Grid>
+      )}
+
+      {tab === "groceries" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <Grid cols={4}>
+            <StatCard label={t.groceryBags} value={D.groceries?.bags ?? 0}      color={C.yellow} iconEl={<Icon.cart />}   delay={0}   />
+            <StatCard label={t.ubGrocery}   value={D.groceries?.ub   ?? 0}       color={C.orange} iconEl={<Icon.people />} delay={60}  />
+            <StatCard label={t.avgCost}     value={(D.groceries?.avgCost   ?? 0).toFixed(2)} prefix="$" color={C.teal}  iconEl={<Icon.dollar />} delay={120} />
+            <StatCard label={t.totalCost}   value={(D.groceries?.totalCost ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="$" color={C.green} iconEl={<Icon.money />}  delay={180} />
+          </Grid>
+          <Card>
+            <SectionTitle>{t.monthlyDistribution}</SectionTitle>
+            <BarChart data={[
+              { label: t.jan, value: D.groceries?.monthly?.[0] ?? 0, color: "#f28b82" },
+              { label: t.feb, value: D.groceries?.monthly?.[1] ?? 0, color: "#b39ddb" },
+              { label: t.mar, value: D.groceries?.monthly?.[2] ?? 0, color: "#81d4fa" },
+              { label: t.apr, value: D.groceries?.monthly?.[3] ?? 0 },
+              { label: t.may, value: D.groceries?.monthly?.[4] ?? 0 },
+              { label: t.jun, value: D.groceries?.monthly?.[5] ?? 0 },
+            ]} />
+          </Card>
+        </div>
+      )}
+
+      {tab === "clothing" && (
+        <Grid cols={2}>
+          <StatCard label={t.clothingDonations} value={D.clothing?.donations ?? 0} color={C.purple} iconEl={<Icon.shirt />}  delay={0}  />
+          <StatCard label={t.ubClothing}        value={D.clothing?.ub        ?? 0} color={C.teal}   iconEl={<Icon.people />} delay={60} />
+        </Grid>
+      )}
+
+      {tab === "emergency" && <EmptyState message={t.noDataYet} />}
+      {tab === "christmas"  && <EmptyState message={t.noDataYet} />}
+    </div>
+  );
+}
+
+function Level2Page({ t, initialTab = "health", data }) {
+  const [tab, setTab] = useState(initialTab);
+  const D = data ?? FALLBACK_DATA;
+  return (
+    <div>
+      <LevelBadge level="2" name={t.level2Name} color={C.blue} />
+      <TabBar tabs={[
+        { id: "health",    label: t.health    },
+        { id: "education", label: t.education },
+        { id: "shelter",   label: t.shelter   },
+      ]} active={tab} onChange={setTab} />
+
+      {tab === "health" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div className="pdv-card pdv-summary-card">
+            <div className="pdv-summary-inner">
+              <div>
+                <div className="pdv-summary-lbl">{t.totalHealthServices}</div>
+                <div className="pdv-summary-val">{D.health?.totalServices ?? 0}</div>
+              </div>
+              <div>
+                <div className="pdv-summary-lbl">{t.totalHealthUB}</div>
+                <div className="pdv-summary-val">{D.health?.totalUB ?? 0}</div>
+              </div>
+            </div>
+          </div>
+
+          <SectionTitle>{t.clinicTitle}</SectionTitle>
+          <Grid cols={4}>
+            <StatCard label={t.medicalAttention} value={D.health?.clinic?.consultations ?? 0}  color={C.blue}  iconEl={<Icon.doctor />} delay={0}   />
+            <StatCard label={t.ubMedical}        value={D.health?.clinic?.ub             ?? 0}  color={C.teal}  iconEl={<Icon.people />} delay={60}  />
+            <StatCard label={t.paidByVozManos}   value={(D.health?.clinic?.paidVozManos ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="$" color={C.green} iconEl={<Icon.dollar />} delay={120} />
+            <StatCard label={t.paidByPDV}        value={(D.health?.clinic?.paidPDV       ?? 0).toFixed(2)} prefix="$" color={C.blue}  iconEl={<Icon.money />}  delay={180} />
+          </Grid>
+
+          <SectionTitle style={{ marginTop: 4 }}>{t.otherMedicalAidsTitle}</SectionTitle>
+          <Grid cols={3}>
+            <StatCard label={t.otherMedicalAids} value={D.health?.other?.aids     ?? 0}  color={C.orange} iconEl={<Icon.doctor />} delay={0}   />
+            <StatCard label={t.ubOtherMedical}   value={D.health?.other?.ub       ?? 0}  color={C.teal}   iconEl={<Icon.people />} delay={60}  />
+            <StatCard label={t.investedOther}     value={(D.health?.other?.invested ?? 0).toFixed(2)} prefix="$" color={C.green} iconEl={<Icon.dollar />} delay={120} />
+          </Grid>
+
+          <Card>
+            <SectionTitle>{t.monthlyDistribution}</SectionTitle>
+            <BarChart data={[
+              { label: t.jan, value: D.health?.monthly?.[0] ?? 0, color: C.blueLight },
+              { label: t.feb, value: D.health?.monthly?.[1] ?? 0, color: "#f48fb1" },
+              { label: t.mar, value: D.health?.monthly?.[2] ?? 0 },
+              { label: t.apr, value: D.health?.monthly?.[3] ?? 0 },
+              { label: t.may, value: D.health?.monthly?.[4] ?? 0 },
+              { label: t.jun, value: D.health?.monthly?.[5] ?? 0 },
+            ]} />
+          </Card>
+        </div>
+      )}
+
+      {tab === "education" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <Grid cols={3}>
+            <StatCard label={t.schoolKits}                 value={D.education?.schoolKits   ?? 0}   color={C.red}    iconEl={<Icon.backpack />} delay={0}   />
+            <StatCard label={`${t.unitCost} (kit)`}        value={(D.education?.schoolKitCost ?? 0).toFixed(2)} prefix="$" color={C.yellow} iconEl={<Icon.dollar />} delay={60}  />
+            <StatCard label={`${t.totalCostLabel} (kits)`} value={((D.education?.schoolKits ?? 0) * (D.education?.schoolKitCost ?? 0)).toFixed(2)} prefix="$" color={C.green}  iconEl={<Icon.money />}  delay={120} />
+          </Grid>
+          <Grid cols={3}>
+            <StatCard label={t.backpacks}                                          value={D.education?.backpacks    ?? 0}   color={C.blue}   iconEl={<Icon.backpack />} delay={180} />
+            <StatCard label={`${t.unitCost} (${t.backpacks.toLowerCase()})`}       value={(D.education?.backpackCost ?? 0).toFixed(2)} prefix="$" color={C.yellow} iconEl={<Icon.dollar />} delay={240} />
+            <StatCard label={`${t.totalCostLabel} (${t.backpacks.toLowerCase()})`} value={((D.education?.backpacks ?? 0) * (D.education?.backpackCost ?? 0)).toFixed(2)} prefix="$" color={C.green}  iconEl={<Icon.money />}  delay={300} />
+          </Grid>
+        </div>
+      )}
+
+      {tab === "shelter" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <StatCard label={t.shelterServices} value={D.shelter?.services ?? 0} color={C.blue} iconEl={<Icon.home />} delay={0} />
+          <Card>
+            <p className="pdv-info-text">{t.serviceProviders}</p>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Level3Page({ t, initialTab = "lifefarms", data }) {
+  const [tab, setTab] = useState(initialTab);
+  const D = data ?? FALLBACK_DATA;
+  return (
+    <div>
+      <LevelBadge level="3" name={t.level3Name} color={C.green} />
+      <TabBar tabs={[
+        { id: "lifefarms", label: t.lifeFarms     },
+        { id: "revolving", label: t.revolvingFund },
+        { id: "sharktank", label: t.sharkTank     },
+      ]} active={tab} onChange={setTab} />
+
+      {tab === "lifefarms" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <SectionTitle>{t.championsLabel}</SectionTitle>
+          <Grid cols={3}>
+            <ProgressBar label={t.idealFarm}     description={t.idealFarmDesc}    goal={D.lifeFarms?.idealFarm?.goal      ?? 30}  done={D.lifeFarms?.idealFarm?.done      ?? 0}  color={C.yellow} />
+            <ProgressBar label={t.fullSizeFarm}  description={t.fullSizeFarmDesc} goal={D.lifeFarms?.fullSizeFarm?.goal   ?? 10}  done={D.lifeFarms?.fullSizeFarm?.done   ?? 0}  color={C.blue}   />
+            <ProgressBar label={t.totalChampions}                                  goal={D.lifeFarms?.totalChampions?.goal ?? 40}  done={D.lifeFarms?.totalChampions?.done ?? 0}  color={C.green}  />
+          </Grid>
+          <SectionTitle style={{ marginTop: 8 }}>{t.growthLabel}</SectionTitle>
+          <Grid cols={2}>
+            <ProgressBar label={t.basicFarm}          description={t.basicFarmDesc}      goal={D.lifeFarms?.basicFarm?.goal      ?? 118} done={D.lifeFarms?.basicFarm?.done      ?? 0} color={C.orange} />
+            <ProgressBar label={t.multiplicationFarm} description={t.multiplicationDesc} goal={D.lifeFarms?.multiplication?.goal ?? 108} done={D.lifeFarms?.multiplication?.done ?? 0} color={C.purple} />
+          </Grid>
+        </div>
+      )}
+
+      {tab === "revolving" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <Grid cols={3}>
+            <StatCard label={t.totalMEPs}   value={D.meps?.total       ?? 0} color={C.text1}  iconEl={<Icon.chart />} delay={0}   />
+            <StatCard label={t.active}      value={D.meps?.active      ?? 0} color={C.green}  iconEl={<Icon.check />} delay={60}  />
+            <StatCard label={t.marketReady} value={D.meps?.marketReady ?? 0} color={C.yellow} iconEl={<Icon.star />}  delay={120} />
+          </Grid>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Card>
+              <SectionTitle>{t.statusDist}</SectionTitle>
+              <DonutChart segments={[
+                { label: t.active,   value: D.meps?.active   ?? 0,  color: C.green },
+                { label: t.inactive, value: D.meps?.inactive ?? 0,  color: "#bdc1c6" },
+                { label: t.finished, value: D.meps?.finished ?? 0,  color: C.blue },
+                { label: t.aborted,  value: D.meps?.aborted  ?? 0,  color: C.red },
+              ]} />
+            </Card>
+            <Card>
+              <SectionTitle>{t.byLocation}</SectionTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 8 }}>
+                {[
+                  { name: t.quito,         value: D.meps?.byLocation?.quito         ?? 0, color: C.blue },
+                  { name: t.otavalo,       value: D.meps?.byLocation?.otavalo       ?? 0, color: C.green },
+                  { name: t.mantaRiobamba, value: D.meps?.byLocation?.mantaRiobamba ?? 0, color: C.orange },
+                ].map((loc, i) => (
+                  <div key={i} className="pdv-loc-item">
+                    <div className="pdv-loc-row">
+                      <div className="pdv-loc-name">
+                        <div className="pdv-loc-dot" style={{ background: loc.color }} />
+                        {loc.name}
+                      </div>
+                      <span className="pdv-loc-val">{loc.value}</span>
+                    </div>
+                    <div className="pdv-loc-track">
+                      <div
+                        className="pdv-loc-fill"
+                        style={{ background: loc.color, width: `${(loc.value / (D.meps?.total || 1)) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {tab === "sharktank" && <EmptyState message={t.sharkTankPlaceholder} />}
+    </div>
+  );
+}
+
+function EvangelismPage({ t, data }) {
+  const D = data ?? FALLBACK_DATA;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div className="pdv-level-badge" style={{ background: C.purpleBg, alignSelf: "flex-start" }}>
+        <div style={{
+          width: 22, height: 22, borderRadius: "50%",
+          background: C.purple,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#fff",
+        }}>
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" width="10" height="10">
+            <path d="M6 1v10M1 6h10"/>
+          </svg>
+        </div>
+        <span className="pdv-level-badge-text" style={{ color: C.purple }}>{t.evangelismDesc}</span>
+      </div>
+      <Grid cols={4}>
+        <StatCard label={t.biblesDelivered}     value={D.evangelism?.bibles              ?? 0} color={C.purple} iconEl={<Icon.book />}   delay={0}   />
+        <StatCard label={t.vbsCampsHeld}        value={D.evangelism?.vbsCamps            ?? 0} color={C.blue}   iconEl={<Icon.tent />}   delay={80}  />
+        <StatCard label={t.childrenVBS}         value={D.evangelism?.childrenVBS         ?? 0} color={C.red}    iconEl={<Icon.child />}  delay={160} />
+        <StatCard label={t.personasAlcanzadas}  value={D.evangelism?.personasAlcanzadas  ?? 0} color={C.green}  iconEl={<Icon.people />} delay={240} />
+      </Grid>
+    </div>
+  );
+}
+
+function BeneficiariesPage({ t, data }) {
+  const [tab, setTab] = useState("combined");
+  const D = data ?? FALLBACK_DATA;
+  const bene = D.beneficiaries ?? FALLBACK_DATA.beneficiaries;
+  const tableData = {
+    combined: { accounts: bene.combined?.accounts ?? 0, bene: bene.combined?.beneficiaries ?? 0, girls: bene.combined?.girls ?? 0, boys: bene.combined?.boys ?? 0, families: bene.combined?.newFamilies ?? 0, ub: bene.combined?.newUB ?? 0 },
+    quito:    { accounts: bene.quito?.accounts    ?? 0, bene: bene.quito?.beneficiaries    ?? 0, girls: bene.quito?.girls    ?? 0, boys: bene.quito?.boys    ?? 0, families: bene.quito?.newFamilies    ?? 0, ub: bene.quito?.newUB    ?? 0 },
+    imbabura: { accounts: bene.imbabura?.accounts ?? 0, bene: bene.imbabura?.beneficiaries ?? 0, girls: bene.imbabura?.girls ?? 0, boys: bene.imbabura?.boys ?? 0, families: bene.imbabura?.newFamilies ?? 0, ub: bene.imbabura?.newUB ?? 0 },
+  };
+  const d = tableData[tab];
+
+  return (
+    <div>
+      <TabBar tabs={[
+        { id: "combined", label: t.combined },
+        { id: "quito",    label: t.quito    },
+        { id: "imbabura", label: t.imbabura },
+      ]} active={tab} onChange={setTab} />
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 16 }}>
+        {/* Nivel 1: Active Accounts y Active Beneficiaries */}
+        <Grid cols={2}>
+          <StatCard label={t.activeAccounts}      value={d.accounts} color={C.teal}  iconEl={<Icon.folder />} delay={0}   />
+          <StatCard label={t.activeBeneficiaries} value={d.bene}     color={C.blue}  iconEl={<Icon.people />}  delay={60}  />
+        </Grid>
+
+        {/* Nivel 2: Active Girls y Active Boys (Bloques más grandes) */}
+        <div style={{ display: "flex", gap: 16, flexDirection: "row" }}>
+          <Card style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", padding: 32, background: C.pinkBg }}>
+            <div>
+              <div style={{ color: C.pink, fontWeight: 600, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>{t.activeGirls}</div>
+              <div style={{ color: C.pink, fontSize: 48, fontWeight: 500, lineHeight: 1, letterSpacing: "-0.03em" }}>{d.girls.toLocaleString()}</div>
+            </div>
+            <div style={{ color: C.pink, opacity: 0.5, transform: "scale(3.5)", transformOrigin: "right center" }}>
+              <Icon.child />
+            </div>
+          </Card>
+          <Card style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", padding: 32, background: C.tealBg }}>
+            <div>
+              <div style={{ color: C.teal, fontWeight: 600, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>{t.activeBoys}</div>
+              <div style={{ color: C.teal, fontSize: 48, fontWeight: 500, lineHeight: 1, letterSpacing: "-0.03em" }}>{d.boys.toLocaleString()}</div>
+            </div>
+            <div style={{ color: C.teal, opacity: 0.5, transform: "scale(3.5)", transformOrigin: "right center" }}>
+              <Icon.child />
+            </div>
+          </Card>
+        </div>
+
+        {/* Nivel 3: Families Accepted y New UB */}
+        <Grid cols={2}>
+          <StatCard label={t.acceptedFamilies}    value={d.families} color={C.green}  iconEl={<Icon.home />}   delay={240} />
+          <StatCard label={t.acceptedUB}          value={d.ub}       color={C.orange} iconEl={<Icon.star />}   delay={300} />
+        </Grid>
+      </div>
+    </div>
+  );
+}
+
+// ─── ROOT ─────────────────────────────────────────────────────
+
+export default function Dashboard() {
+  const [lang, setLang] = useState("en");
+  const [page, setPage] = useState("overview");
+  const [navTab, setNavTab] = useState(null);
+  const [mobileNav, setMobileNav] = useState(false);
+  const [dashData, setDashData] = useState(FALLBACK_DATA);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const t = i18n[lang];
+
+  // Fetch live data from /data/dashboard.json (written by the sync script)
+  useEffect(() => {
+    fetch("/data/dashboard.json")
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(json => {
+        // Deep merge: keep FALLBACK_DATA keys not present in the fetched JSON
+        setDashData(prev => ({ ...prev, ...json }));
+        if (json.lastUpdated) setLastUpdated(new Date(json.lastUpdated));
+      })
+      .catch(() => { /* network or file error — silently keep fallback */ });
+  }, []);
+
+  const titles = {
+    overview:      t.overview,
+    level1:        `${t.level1} · ${t.level1Name}`,
+    level2:        `${t.level2} · ${t.level2Name}`,
+    level3:        `${t.level3} · ${t.level3Name}`,
+    evangelism:    t.evangelism,
+    beneficiaries: t.beneficiaries,
+  };
+
+  // navigate(page, tab?) — used from Overview clickable cards
+  const navigate = useCallback((p, tab = null) => {
+    setNavTab(tab);
+    setPage(p);
+    setMobileNav(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const go = useCallback((p) => { navigate(p); }, [navigate]);
+
+  return (
+    <>
+      {/* Mobile header */}
+      <div className="pdv-mobile-hdr">
+        <button
+          className="pdv-mobile-menu-btn"
+          onClick={() => setMobileNav(!mobileNav)}
+          aria-label="Toggle navigation"
+        >
+          <Icon.menu />
+        </button>
+        <span style={{ fontSize: 14, fontWeight: 600, color: C.text1, letterSpacing: "-0.01em" }}>
+          Pan de Vida
+        </span>
+      </div>
+
+      {mobileNav && (
+        <div className="pdv-overlay" onClick={() => setMobileNav(false)} />
+      )}
+
+      <div className="pdv-app">
+
+        {/* ── SIDEBAR ── */}
+        <aside className={`pdv-sidebar ${mobileNav ? "open" : ""}`}>
+          <div className="pdv-sidebar-logo">
+            <img
+              src="/logo.png"
+              alt="Pan de Vida"
+              style={{ width: 44, height: 44, borderRadius: 10, flexShrink: 0, objectFit: "contain" }}
+            />
+            <div>
+              <div className="pdv-sidebar-name">Pan de Vida</div>
+              <div className="pdv-sidebar-subtitle">Dashboard 2026</div>
+            </div>
+          </div>
+
+          <nav className="pdv-nav">
+            <NavItem
+              iconEl={<Icon.overview />}
+              label={t.overview}
+              active={page === "overview"}
+              onClick={() => go("overview")}
+            />
+
+            <NavSection label={t.level1Desc} />
+            <NavItem
+              iconEl={<Icon.relief />}
+              label={`${t.level1} · ${t.level1Name}`}
+              active={page === "level1"}
+              onClick={() => go("level1")}
+            />
+
+            <NavSection label={t.level2Desc} />
+            <NavItem
+              iconEl={<Icon.restoration />}
+              label={`${t.level2} · ${t.level2Name}`}
+              active={page === "level2"}
+              onClick={() => go("level2")}
+            />
+
+            <NavSection label={t.level3Desc} />
+            <NavItem
+              iconEl={<Icon.development />}
+              label={`${t.level3} · ${t.level3Name}`}
+              active={page === "level3"}
+              onClick={() => go("level3")}
+            />
+
+            <div className="pdv-nav-divider" />
+
+            <NavItem
+              iconEl={<Icon.evangelism />}
+              label={t.evangelism}
+              sublabel={t.evangelismDesc}
+              active={page === "evangelism"}
+              onClick={() => go("evangelism")}
+            />
+            <NavItem
+              iconEl={<Icon.beneficiaries />}
+              label={t.beneficiaries}
+              active={page === "beneficiaries"}
+              onClick={() => go("beneficiaries")}
+            />
+          </nav>
+
+          {/* Language toggle */}
+          <div className="pdv-lang-toggle">
+            <div className="pdv-lang-inner">
+              {["en", "es"].map(l => (
+                <button
+                  key={l}
+                  className={`pdv-lang-btn ${lang === l ? "active" : ""}`}
+                  onClick={() => setLang(l)}
+                >
+                  {l.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* ── MAIN ── */}
+        <main className="pdv-main">
+          <div className="pdv-page-header">
+            <div>
+              <h1 className="pdv-page-title">{titles[page]}</h1>
+              <p className="pdv-page-date">
+                {t.lastUpdated}: {lastUpdated
+                  ? lastUpdated.toLocaleDateString(lang === "es" ? "es-EC" : "en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
+                  : "—"}
+              </p>
+            </div>
+            <div className="pdv-status-chip">
+              <span className="pdv-status-dot" />
+              {t.dataSynced}
+            </div>
+          </div>
+
+          {page === "overview"      && <OverviewPage      t={t} onNavigate={navigate} data={dashData} />}
+          {page === "level1"        && <Level1Page        t={t} key={navTab} initialTab={navTab || "hotmeals"}   data={dashData} />}
+          {page === "level2"        && <Level2Page        t={t} key={navTab} initialTab={navTab || "health"}     data={dashData} />}
+          {page === "level3"        && <Level3Page        t={t} key={navTab} initialTab={navTab || "lifefarms"}  data={dashData} />}
+          {page === "evangelism"    && <EvangelismPage    t={t} data={dashData} />}
+          {page === "beneficiaries" && <BeneficiariesPage t={t} data={dashData} />}
+        </main>
+      </div>
+    </>
+  );
+}

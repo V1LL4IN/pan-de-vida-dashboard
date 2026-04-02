@@ -1,0 +1,15 @@
+# Environment variables — never commit
+.env
+
+# Salesforce private key — never commit
+scripts/server.key
+scripts/server.crt
+
+# Node
+node_modules/
+
+# Build output
+dashboard-app/dist/
+
+# OS
+.DS_Store

@@ -1,0 +1,128 @@
+{
+  "overview": {
+    "totalBeneficiaries": 2402,
+    "totalAccounts": 644,
+    "newFamilies": 27,
+    "totalDeliveries": 1645
+  },
+  "hotMeals": {
+    "plates": 1086,
+    "families": 111
+  },
+  "groceries": {
+    "bags": 153,
+    "ub": 97,
+    "avgCost": 15.313661971830985,
+    "totalCost": 2174.54,
+    "monthly": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "clothing": {
+    "donations": 137,
+    "ub": 50
+  },
+  "health": {
+    "totalServices": 267,
+    "totalUB": 141,
+    "clinic": {
+      "consultations": 175,
+      "ub": 86,
+      "paidVozManos": 3571.5,
+      "paidPDV": 62
+    },
+    "other": {
+      "aids": 92,
+      "ub": 77,
+      "invested": 497.74
+    },
+    "monthly": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "education": {
+    "schoolKits": 1,
+    "schoolKitCost": 1,
+    "backpacks": 1,
+    "backpackCost": 1,
+    "vbsCamps": 11
+  },
+  "shelter": {
+    "services": 0
+  },
+  "lifeFarms": {
+    "idealFarm": {
+      "goal": 30,
+      "done": 42
+    },
+    "fullSizeFarm": {
+      "goal": 10,
+      "done": 10
+    },
+    "totalChampions": {
+      "goal": 40,
+      "done": 52
+    },
+    "basicFarm": {
+      "goal": 118,
+      "done": 154
+    },
+    "multiplication": {
+      "goal": 108,
+      "done": 116
+    }
+  },
+  "meps": null,
+  "sharkTank": null,
+  "evangelism": {
+    "bibles": 73,
+    "vbsCamps": 11,
+    "childrenVBS": 323,
+    "personasAlcanzadas": 593
+  },
+  "beneficiaries": {
+    "combined": {
+      "accounts": 644,
+      "beneficiaries": 2402,
+      "girls": 362,
+      "boys": 363,
+      "newFamilies": 27,
+      "newUB": 85
+    },
+    "quito": {
+      "accounts": 353,
+      "beneficiaries": 1177,
+      "girls": 216,
+      "boys": 216,
+      "newFamilies": 15,
+      "newUB": 44
+    },
+    "imbabura": {
+      "accounts": 274,
+      "beneficiaries": 1171,
+      "girls": 146,
+      "boys": 147,
+      "newFamilies": 12,
+      "newUB": 41
+    }
+  },
+  "christmas": {
+    "hotMeals": 0,
+    "groceries": 0,
+    "toys": 0
+  },
+  "emergency": {
+    "groceries": 0
+  },
+  "lastUpdated": "2026-04-02T18:37:13.438Z"
+}

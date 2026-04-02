@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(export PATH=\"$PATH:/usr/local/bin:/opt/homebrew/bin\")",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//Users/matiasvillarrealcruz/.nvm/versions/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(ls /opt/homebrew/bin/node*)",
+      "Bash(/opt/homebrew/bin/node --version)",
+      "Bash(/opt/homebrew/bin/node /opt/homebrew/bin/npm run build)",
+      "Bash(PATH=\"/opt/homebrew/bin:$PATH\" npm run build)",
+      "Bash(node sync-salesforce.js)",
+      "Bash(/usr/local/bin/node sync-salesforce.js)",
+      "Bash(/opt/homebrew/bin/node sync-salesforce.js)",
+      "Bash(/opt/homebrew/bin/node inspect-report.js 00OUc0000076XBlMAM)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(''''newFamilies:'''', d[''''overview''''][''''newFamilies'''']\\)\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(''''../dashboard-app/public/data/dashboard.json''''\\)\\); print\\(''''newFamilies:'''', d[''''overview''''][''''newFamilies'''']\\)\")",
+      "Bash(/opt/homebrew/bin/node inspect-report.js 00OUc0000076MD7MAM)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(''''../dashboard-app/public/data/dashboard.json''''\\)\\); print\\(''''clinic.ub:'''', d[''''health''''][''''clinic''''][''''ub'''']\\); print\\(''''totalUB:'''', d[''''health''''][''''totalUB'''']\\)\")",
+      "Bash(/opt/homebrew/bin/node inspect-report.js 00OUc0000076QYTMA2)",
+      "Bash(/opt/homebrew/bin/node inspect-report.js 00OUc0000076PULMA2)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(''''../dashboard-app/public/data/dashboard.json''''\\)\\); print\\(''''paidVozManos:'''', d[''''health''''][''''clinic''''][''''paidVozManos'''']\\); print\\(''''paidPDV:'''', d[''''health''''][''''clinic''''][''''paidPDV'''']\\)\")",
+      "Bash(/opt/homebrew/bin/node inspect-report.js 00OUc000007IzQnMAK)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(''''../dashboard-app/public/data/dashboard.json''''\\)\\); print\\(''''evangelism.vbsCamps:'''', d[''''evangelism''''][''''vbsCamps'''']\\); print\\(''''evangelism.childrenVBS:'''', d[''''evangelism''''][''''childrenVBS'''']\\); print\\(''''education.vbsCamps:'''', d[''''education''''][''''vbsCamps'''']\\)\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\(''''../dashboard-app/public/data/dashboard.json''''\\)\\); print\\(''''evangelism:'''', d[''''evangelism'''']\\)\")",
+      "Bash(python3 -c \":*)"
+    ]
+  }
+}
