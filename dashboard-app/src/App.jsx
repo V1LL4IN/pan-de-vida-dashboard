@@ -79,7 +79,7 @@ const i18n = {
     totalBeneficiaries: "Active Beneficiaries (Individuals)", totalAccounts: "Active Family Accounts (Families)",
     newFamilies: "New Families Added This Year", totalDeliveries: "Total # of Services Delivered",
     impactByLevel: "Impact by Level",
-    hotMeals: "Hot Meals", hotMealsDelivered: "How much hot meal - $ (add report later)",
+    hotMeals: "Hot Meals", hotMealsDelivered: "Hot meals served",
     familiesHotMeals: "Families served",
     groceries: "Food kits", groceryBags: "Food kits delivered",
     ubGrocery: "Families served", avgCost: "Avg. unit cost",
@@ -147,7 +147,7 @@ const i18n = {
     totalBeneficiaries: "Beneficiarios Activos (Individuos)", totalAccounts: "Cuentas Familiares Activas (Familias)",
     newFamilies: "Nuevas Familias Añadidas Este Año", totalDeliveries: "Total de Servicios Entregados",
     impactByLevel: "Impacto por Nivel",
-    hotMeals: "Comida Caliente", hotMealsDelivered: "Valor de comidas calientes - $ (añadir reporte después)",
+    hotMeals: "Comida Caliente", hotMealsDelivered: "Comidas calientes servidas",
     familiesHotMeals: "Familias servidas",
     groceries: "Víveres", groceryBags: "Víveres entregados",
     ubGrocery: "Familias servidas", avgCost: "Costo promedio",
@@ -263,7 +263,7 @@ function Card({ children, style, className = "" }) {
   );
 }
 
-function StatCard({ label, value, prefix = "", color = C.blue, iconEl, delay = 0 }) {
+function StatCard({ label, value, prefix = "", color = C.blue, iconEl, delay = 0, highlight }) {
   const [v, setV] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setV(true), delay);
@@ -271,7 +271,7 @@ function StatCard({ label, value, prefix = "", color = C.blue, iconEl, delay = 0
   }, [delay]);
 
   return (
-    <Card style={{
+    <Card className={highlight ? "pdv-highlight" : ""} style={{
       opacity: v ? 1 : 0,
       transform: v ? "translateY(0)" : "translateY(10px)",
       transition: "opacity 0.3s cubic-bezier(0.2,0,0,1), transform 0.3s cubic-bezier(0.2,0,0,1)",
@@ -293,7 +293,7 @@ function StatCard({ label, value, prefix = "", color = C.blue, iconEl, delay = 0
   );
 }
 
-function ProgressBar({ label, goal, done, color = C.blue, description }) {
+function ProgressBar({ label, goal, done, color = C.blue, description, highlight }) {
   const [a, setA] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setA(true), 200);
@@ -303,7 +303,7 @@ function ProgressBar({ label, goal, done, color = C.blue, description }) {
   const over = done >= goal;
 
   return (
-    <Card style={{ padding: "20px 24px" }}>
+    <Card className={highlight ? "pdv-highlight" : ""} style={{ padding: "20px 24px" }}>
       <div className="pdv-progress-header">
         <div>
           <div className="pdv-progress-label">{label}</div>
@@ -587,12 +587,12 @@ function OverviewPage({ t, onNavigate, data }) {
       {/* Top summary stats — navigate to beneficiaries */}
       <Grid cols={4}>
         {[
-          { label: t.totalBeneficiaries, value: D.overview?.totalBeneficiaries ?? 0, color: C.blue,   icon: <Icon.people />,  nav: { page: "beneficiaries" } },
-          { label: t.totalAccounts,      value: D.overview?.totalAccounts      ?? 0, color: C.teal,   icon: <Icon.folder />,  nav: { page: "beneficiaries" } },
-          { label: t.newFamilies,        value: D.overview?.newFamilies         ?? 0, color: C.green,  icon: <Icon.home />,    nav: { page: "beneficiaries" } },
-          { label: t.totalDeliveries,    value: D.overview?.totalDeliveries     ?? 0, color: C.orange, icon: <Icon.box />,     nav: { page: "level1", tab: "hotmeals" } },
+          { label: t.totalBeneficiaries, value: D.overview?.totalBeneficiaries ?? 0, color: C.blue,   icon: <Icon.people />,  nav: { page: "beneficiaries" }, navKey: "totalBeneficiaries" },
+          { label: t.totalAccounts,      value: D.overview?.totalAccounts      ?? 0, color: C.teal,   icon: <Icon.folder />,  nav: { page: "beneficiaries" }, navKey: "totalAccounts" },
+          { label: t.newFamilies,        value: D.overview?.newFamilies         ?? 0, color: C.green,  icon: <Icon.home />,    nav: { page: "beneficiaries" }, navKey: "newFamilies" },
+          { label: t.totalDeliveries,    value: D.overview?.totalDeliveries     ?? 0, color: C.orange, icon: <Icon.box />,     nav: { page: "level1", tab: "hotmeals" }, navKey: "hotMeals" },
         ].map((s, i) => (
-          <ClickableCard key={i} color={s.color} label={t.viewDetail} onClick={() => onNavigate(s.nav.page, s.nav.tab)}>
+          <ClickableCard key={i} color={s.color} label={t.viewDetail} onClick={() => onNavigate(s.nav.page, s.nav.tab, s.navKey)}>
             <div className="pdv-stat-card">
               <div>
                 <div className="pdv-stat-label">{s.label}</div>
@@ -629,7 +629,7 @@ function OverviewPage({ t, onNavigate, data }) {
                       onClick={(e) => {
                         e.stopPropagation();
                         const nav = ITEM_NAV[item.navKey];
-                        if (nav) onNavigate(nav.page, nav.tab);
+                        if (nav) onNavigate(nav.page, nav.tab, item.navKey);
                       }}
                       style={{
                         cursor: "pointer",
@@ -661,13 +661,14 @@ function OverviewPage({ t, onNavigate, data }) {
       {/* Evangelism — navigate to evangelism page */}
       <div>
         <SectionTitle>{t.evangelism}</SectionTitle>
-        <Grid cols={3}>
+        <Grid cols={4}>
           {[
-            { label: t.biblesDelivered, value: D.evangelism?.bibles       ?? 0, icon: <Icon.book /> },
-            { label: t.vbsCampsHeld,    value: D.evangelism?.vbsCamps      ?? 0, icon: <Icon.tent /> },
-            { label: t.childrenVBS,     value: D.evangelism?.childrenVBS   ?? 0, icon: <Icon.child /> },
+            { label: t.biblesDelivered,    value: D.evangelism?.bibles             ?? 0, icon: <Icon.book />,   navKey: "bibles" },
+            { label: t.vbsCampsHeld,       value: D.evangelism?.vbsCamps           ?? 0, icon: <Icon.tent />,   navKey: "vbsCamps" },
+            { label: t.childrenVBS,        value: D.evangelism?.childrenVBS        ?? 0, icon: <Icon.child />,  navKey: "childrenVBS" },
+            { label: t.personasAlcanzadas, value: D.evangelism?.personasAlcanzadas ?? 0, icon: <Icon.people />, navKey: "personasAlcanzadas" },
           ].map((s, i) => (
-            <ClickableCard key={i} color={C.purple} label={t.viewDetail} onClick={() => onNavigate("evangelism")}>
+            <ClickableCard key={i} color={C.purple} label={t.viewDetail} onClick={() => onNavigate("evangelism", null, s.navKey)}>
               <div className="pdv-stat-card">
                 <div>
                   <div className="pdv-stat-label">{s.label}</div>
@@ -687,7 +688,7 @@ function OverviewPage({ t, onNavigate, data }) {
   );
 }
 
-function Level1Page({ t, initialTab = "hotmeals", data }) {
+function Level1Page({ t, initialTab = "hotmeals", data, highlightKey }) {
   const [tab, setTab] = useState(initialTab);
   const D = data ?? FALLBACK_DATA;
   return (
@@ -703,7 +704,7 @@ function Level1Page({ t, initialTab = "hotmeals", data }) {
 
       {tab === "hotmeals" && (
         <Grid cols={2}>
-          <StatCard label={t.hotMealsDelivered} value={D.hotMeals?.plates   ?? 0} color={C.red}    iconEl={<Icon.bag />}    delay={0}  />
+          <StatCard label={t.hotMealsDelivered} value={D.hotMeals?.plates   ?? 0} color={C.red}    iconEl={<Icon.bag />}    highlight={highlightKey === 'hotMeals'} delay={0}  />
           <StatCard label={t.familiesHotMeals}  value={D.hotMeals?.families ?? 0} color={C.orange} iconEl={<Icon.people />} delay={60} />
         </Grid>
       )}
@@ -711,10 +712,10 @@ function Level1Page({ t, initialTab = "hotmeals", data }) {
       {tab === "groceries" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <Grid cols={4}>
-            <StatCard label={t.groceryBags} value={D.groceries?.bags ?? 0}      color={C.yellow} iconEl={<Icon.cart />}   delay={0}   />
+            <StatCard label={t.groceryBags} value={D.groceries?.bags ?? 0}      color={C.yellow} iconEl={<Icon.cart />}   highlight={highlightKey === 'groceries'} delay={0}   />
             <StatCard label={t.ubGrocery}   value={D.groceries?.ub   ?? 0}       color={C.orange} iconEl={<Icon.people />} delay={60}  />
             <StatCard label={t.avgCost}     value={(D.groceries?.avgCost   ?? 0).toFixed(2)} prefix="$" color={C.teal}  iconEl={<Icon.dollar />} delay={120} />
-            <StatCard label={t.totalCost}   value={(D.groceries?.totalCost ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="$" color={C.green} iconEl={<Icon.money />}  delay={180} />
+            <StatCard label={t.totalCost}   value={(D.groceries?.totalCost ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="$" color={C.green} iconEl={<Icon.money />} highlight={highlightKey === 'totalCost'} delay={180} />
           </Grid>
           <Card>
             <SectionTitle>{t.monthlyDistribution}</SectionTitle>
@@ -732,7 +733,7 @@ function Level1Page({ t, initialTab = "hotmeals", data }) {
 
       {tab === "clothing" && (
         <Grid cols={2}>
-          <StatCard label={t.clothingDonations} value={D.clothing?.donations ?? 0} color={C.purple} iconEl={<Icon.shirt />}  delay={0}  />
+          <StatCard label={t.clothingDonations} value={D.clothing?.donations ?? 0} color={C.purple} iconEl={<Icon.shirt />} highlight={highlightKey === 'clothing'} delay={0}  />
           <StatCard label={t.ubClothing}        value={D.clothing?.ub        ?? 0} color={C.teal}   iconEl={<Icon.people />} delay={60} />
         </Grid>
       )}
@@ -743,7 +744,7 @@ function Level1Page({ t, initialTab = "hotmeals", data }) {
   );
 }
 
-function Level2Page({ t, initialTab = "health", data }) {
+function Level2Page({ t, initialTab = "health", data, highlightKey }) {
   const [tab, setTab] = useState(initialTab);
   const D = data ?? FALLBACK_DATA;
   return (
@@ -757,7 +758,7 @@ function Level2Page({ t, initialTab = "health", data }) {
 
       {tab === "health" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div className="pdv-card pdv-summary-card">
+          <div className={`pdv-card pdv-summary-card ${highlightKey === 'health' || highlightKey === 'totalHealthUB' ? 'pdv-highlight' : ''}`}>
             <div className="pdv-summary-inner">
               <div>
                 <div className="pdv-summary-lbl">{t.totalHealthServices}</div>
@@ -800,7 +801,7 @@ function Level2Page({ t, initialTab = "health", data }) {
       )}
 
       {tab === "education" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className={highlightKey === 'education' ? 'pdv-highlight' : ''} style={{ display: "flex", flexDirection: "column", gap: 20, padding: highlightKey === 'education' ? 8 : 0, borderRadius: 24 }}>
           <Grid cols={3}>
             <StatCard label={t.schoolKits}                 value={D.education?.schoolKits   ?? 0}   color={C.red}    iconEl={<Icon.backpack />} delay={0}   />
             <StatCard label={`${t.unitCost} (kit)`}        value={(D.education?.schoolKitCost ?? 0).toFixed(2)} prefix="$" color={C.yellow} iconEl={<Icon.dollar />} delay={60}  />
@@ -816,7 +817,7 @@ function Level2Page({ t, initialTab = "health", data }) {
 
       {tab === "shelter" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <StatCard label={t.shelterServices} value={D.shelter?.services ?? 0} color={C.blue} iconEl={<Icon.home />} delay={0} />
+          <StatCard label={t.shelterServices} value={D.shelter?.services ?? 0} color={C.blue} iconEl={<Icon.home />} highlight={highlightKey === 'shelter'} delay={0} />
           <Card>
             <p className="pdv-info-text">{t.serviceProviders}</p>
           </Card>
@@ -826,7 +827,7 @@ function Level2Page({ t, initialTab = "health", data }) {
   );
 }
 
-function Level3Page({ t, initialTab = "lifefarms", data }) {
+function Level3Page({ t, initialTab = "lifefarms", data, highlightKey }) {
   const [tab, setTab] = useState(initialTab);
   const D = data ?? FALLBACK_DATA;
   return (
@@ -839,7 +840,7 @@ function Level3Page({ t, initialTab = "lifefarms", data }) {
       ]} active={tab} onChange={setTab} />
 
       {tab === "lifefarms" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className={highlightKey === 'lifeFarms' ? 'pdv-highlight' : ''} style={{ display: "flex", flexDirection: "column", gap: 20, padding: highlightKey === 'lifeFarms' ? 8 : 0, borderRadius: 24 }}>
           <SectionTitle>{t.championsLabel}</SectionTitle>
           <Grid cols={3}>
             <ProgressBar label={t.idealFarm}     description={t.idealFarmDesc}    goal={D.lifeFarms?.idealFarm?.goal      ?? 30}  done={D.lifeFarms?.idealFarm?.done      ?? 0}  color={C.yellow} />
@@ -857,9 +858,9 @@ function Level3Page({ t, initialTab = "lifefarms", data }) {
       {tab === "revolving" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <Grid cols={3}>
-            <StatCard label={t.totalMEPs}   value={D.meps?.total       ?? 0} color={C.text1}  iconEl={<Icon.chart />} delay={0}   />
+            <StatCard label={t.totalMEPs}   value={D.meps?.total       ?? 0} color={C.text1}  iconEl={<Icon.chart />} highlight={highlightKey === 'revolvingFund'} delay={0}   />
             <StatCard label={t.active}      value={D.meps?.active      ?? 0} color={C.green}  iconEl={<Icon.check />} delay={60}  />
-            <StatCard label={t.marketReady} value={D.meps?.marketReady ?? 0} color={C.yellow} iconEl={<Icon.star />}  delay={120} />
+            <StatCard label={t.marketReady} value={D.meps?.marketReady ?? 0} color={C.yellow} iconEl={<Icon.star />} highlight={highlightKey === 'marketReady'} delay={120} />
           </Grid>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <Card>
@@ -906,7 +907,7 @@ function Level3Page({ t, initialTab = "lifefarms", data }) {
   );
 }
 
-function EvangelismPage({ t, data }) {
+function EvangelismPage({ t, data, highlightKey }) {
   const D = data ?? FALLBACK_DATA;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -924,16 +925,16 @@ function EvangelismPage({ t, data }) {
         <span className="pdv-level-badge-text" style={{ color: C.purple }}>{t.evangelismDesc}</span>
       </div>
       <Grid cols={4}>
-        <StatCard label={t.biblesDelivered}     value={D.evangelism?.bibles              ?? 0} color={C.purple} iconEl={<Icon.book />}   delay={0}   />
-        <StatCard label={t.vbsCampsHeld}        value={D.evangelism?.vbsCamps            ?? 0} color={C.blue}   iconEl={<Icon.tent />}   delay={80}  />
-        <StatCard label={t.childrenVBS}         value={D.evangelism?.childrenVBS         ?? 0} color={C.red}    iconEl={<Icon.child />}  delay={160} />
-        <StatCard label={t.personasAlcanzadas}  value={D.evangelism?.personasAlcanzadas  ?? 0} color={C.green}  iconEl={<Icon.people />} delay={240} />
+        <StatCard label={t.biblesDelivered}     value={D.evangelism?.bibles              ?? 0} color={C.purple} iconEl={<Icon.book />}   highlight={highlightKey === 'bibles'} delay={0}   />
+        <StatCard label={t.vbsCampsHeld}        value={D.evangelism?.vbsCamps            ?? 0} color={C.blue}   iconEl={<Icon.tent />}   highlight={highlightKey === 'vbsCamps'} delay={80}  />
+        <StatCard label={t.childrenVBS}         value={D.evangelism?.childrenVBS         ?? 0} color={C.red}    iconEl={<Icon.child />}  highlight={highlightKey === 'childrenVBS'} delay={160} />
+        <StatCard label={t.personasAlcanzadas}  value={D.evangelism?.personasAlcanzadas  ?? 0} color={C.green}  iconEl={<Icon.people />} highlight={highlightKey === 'personasAlcanzadas'} delay={240} />
       </Grid>
     </div>
   );
 }
 
-function BeneficiariesPage({ t, data }) {
+function BeneficiariesPage({ t, data, highlightKey }) {
   const [tab, setTab] = useState("combined");
   const D = data ?? FALLBACK_DATA;
   const bene = D.beneficiaries ?? FALLBACK_DATA.beneficiaries;
@@ -955,8 +956,8 @@ function BeneficiariesPage({ t, data }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 16 }}>
         {/* Nivel 1: Active Accounts y Active Beneficiaries */}
         <Grid cols={2}>
-          <StatCard label={t.activeAccounts}      value={d.accounts} color={C.teal}  iconEl={<Icon.folder />} delay={0}   />
-          <StatCard label={t.activeBeneficiaries} value={d.bene}     color={C.blue}  iconEl={<Icon.people />}  delay={60}  />
+          <StatCard label={t.activeAccounts}      value={d.accounts} color={C.teal}  iconEl={<Icon.folder />} highlight={highlightKey === 'totalAccounts'} delay={0}   />
+          <StatCard label={t.activeBeneficiaries} value={d.bene}     color={C.blue}  iconEl={<Icon.people />} highlight={highlightKey === 'totalBeneficiaries'} delay={60}  />
         </Grid>
 
         {/* Nivel 2: Active Girls y Active Boys (Bloques más grandes) */}
@@ -983,8 +984,8 @@ function BeneficiariesPage({ t, data }) {
 
         {/* Nivel 3: Families Accepted y New UB */}
         <Grid cols={2}>
-          <StatCard label={t.acceptedFamilies}    value={d.families} color={C.green}  iconEl={<Icon.home />}   delay={240} />
-          <StatCard label={t.acceptedUB}          value={d.ub}       color={C.orange} iconEl={<Icon.star />}   delay={300} />
+          <StatCard label={t.acceptedFamilies}    value={d.families} color={C.green}  iconEl={<Icon.home />} highlight={highlightKey === 'newFamilies'} delay={240} />
+          <StatCard label={t.acceptedUB}          value={d.ub}       color={C.orange} iconEl={<Icon.star />} delay={300} />
         </Grid>
       </div>
     </div>
@@ -997,6 +998,7 @@ export default function Dashboard() {
   const [lang, setLang] = useState("en");
   const [page, setPage] = useState("overview");
   const [navTab, setNavTab] = useState(null);
+  const [highlightKey, setHighlightKey] = useState(null);
   const [mobileNav, setMobileNav] = useState(false);
   const [dashData, setDashData] = useState(FALLBACK_DATA);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -1023,12 +1025,16 @@ export default function Dashboard() {
     beneficiaries: t.beneficiaries,
   };
 
-  // navigate(page, tab?) — used from Overview clickable cards
-  const navigate = useCallback((p, tab = null) => {
+  // navigate(page, tab?, highlightKey?) — used from Overview clickable cards
+  const navigate = useCallback((p, tab = null, hKey = null) => {
     setNavTab(tab);
     setPage(p);
     setMobileNav(false);
+    setHighlightKey(hKey);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    if (hKey) {
+      setTimeout(() => setHighlightKey(null), 2500);
+    }
   }, []);
 
   const go = useCallback((p) => { navigate(p); }, [navigate]);
@@ -1152,11 +1158,11 @@ export default function Dashboard() {
           </div>
 
           {page === "overview"      && <OverviewPage      t={t} onNavigate={navigate} data={dashData} />}
-          {page === "level1"        && <Level1Page        t={t} key={navTab} initialTab={navTab || "hotmeals"}   data={dashData} />}
-          {page === "level2"        && <Level2Page        t={t} key={navTab} initialTab={navTab || "health"}     data={dashData} />}
-          {page === "level3"        && <Level3Page        t={t} key={navTab} initialTab={navTab || "lifefarms"}  data={dashData} />}
-          {page === "evangelism"    && <EvangelismPage    t={t} data={dashData} />}
-          {page === "beneficiaries" && <BeneficiariesPage t={t} data={dashData} />}
+          {page === "level1"        && <Level1Page        t={t} key={navTab} initialTab={navTab || "hotmeals"}   data={dashData} highlightKey={highlightKey} />}
+          {page === "level2"        && <Level2Page        t={t} key={navTab} initialTab={navTab || "health"}     data={dashData} highlightKey={highlightKey} />}
+          {page === "level3"        && <Level3Page        t={t} key={navTab} initialTab={navTab || "lifefarms"}  data={dashData} highlightKey={highlightKey} />}
+          {page === "evangelism"    && <EvangelismPage    t={t} data={dashData} highlightKey={highlightKey} />}
+          {page === "beneficiaries" && <BeneficiariesPage t={t} data={dashData} highlightKey={highlightKey} />}
         </main>
       </div>
     </>
