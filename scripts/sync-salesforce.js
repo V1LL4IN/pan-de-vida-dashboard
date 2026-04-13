@@ -23,10 +23,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // the .env file manually so the script still works before `npm install`.
 try {
   const { default: dotenv } = await import("dotenv");
-  dotenv.config({ path: resolve(__dirname, "../.env") });
+  dotenv.config({ path: resolve(__dirname, ".env") });
 } catch {
   try {
-    const raw = readFileSync(resolve(__dirname, "../.env"), "utf8");
+    const raw = readFileSync(resolve(__dirname, ".env"), "utf8");
     for (const line of raw.split("\n")) {
       const [key, ...rest] = line.split("=");
       if (key && !key.startsWith("#") && rest.length) {
@@ -48,7 +48,7 @@ const {
 } = process.env;
 
 const API_VERSION = "v59.0";
-const OUTPUT_FILE = resolve(__dirname, OUTPUT_PATH);
+const OUTPUT_FILE = OUTPUT_PATH.startsWith("/") ? OUTPUT_PATH : resolve(__dirname, OUTPUT_PATH);
 
 // ─── JWT helpers ──────────────────────────────────────────────────────────────
 function base64url(str) {

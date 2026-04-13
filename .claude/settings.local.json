@@ -24,7 +24,9 @@
       "Bash(/opt/homebrew/bin/node inspect-report.js 00OUc000007IzQnMAK)",
       "Bash(python3 -c \"import json; d=json.load\\(open\\(''''../dashboard-app/public/data/dashboard.json''''\\)\\); print\\(''''evangelism.vbsCamps:'''', d[''''evangelism''''][''''vbsCamps'''']\\); print\\(''''evangelism.childrenVBS:'''', d[''''evangelism''''][''''childrenVBS'''']\\); print\\(''''education.vbsCamps:'''', d[''''education''''][''''vbsCamps'''']\\)\")",
       "Bash(python3 -c \"import json; d=json.load\\(open\\(''''../dashboard-app/public/data/dashboard.json''''\\)\\); print\\(''''evangelism:'''', d[''''evangelism'''']\\)\")",
-      "Bash(python3 -c \":*)"
+      "Bash(python3 -c \":*)",
+      "Bash(dig NS pandevida.engineering +short)",
+      "Bash(nslookup -type=NS pandevida.engineering)"
     ]
   }
 }
