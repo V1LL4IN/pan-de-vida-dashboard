@@ -19,7 +19,13 @@ const FALLBACK_DATA = {
     monthly: [84, 91, 0, 0, 0, 0],
   },
   education: { schoolKits: 1, schoolKitCost: 13.75, backpacks: 1, backpackCost: 8.75, vbsCamps: 9 },
-  shelter:   { services: 143 },
+  shelter:   {
+    services: 143, ub: 0,
+    furniture:   { services: 0, ub: 0 },
+    appliances:  { services: 0, ub: 0 },
+    household:   { services: 0, ub: 0 },
+    electronics: { services: 0, ub: 0 },
+  },
   lifeFarms: {
     idealFarm:      { goal: 30, done: 42 },
     fullSizeFarm:   { goal: 10, done: 10 },
@@ -103,7 +109,11 @@ const i18n = {
     schoolKits: "School kits distributed", backpacks: "Backpacks distributed",
     totalEducationServices: "Total Education Services Provided", totalEducationUB: "Individuals served",
     unitCost: "Unit cost", totalCostLabel: "Total cost",
-    vbsCamps: "VBS camps held", shelterServices: "Total shelter services",
+    vbsCamps: "VBS camps held", shelterServices: "Total services",
+    shelterUB: "Families served",
+    shelterFurniture: "Furniture", shelterAppliances: "Appliances",
+    shelterHousehold: "Household goods", shelterElectronics: "Electronics & supplies",
+    shelterItemsDelivered: "Items delivered", shelterFamiliesServed: "Families served",
     lifeFarms: "Life Farms", sharkTank: "Shark Tank PDV",
     revolvingFund: "Revolving Fund",
     idealFarm: "Ideal Life Farm",
@@ -171,7 +181,11 @@ const i18n = {
     schoolKits: "Kits escolares distribuidos", backpacks: "Mochilas distribuidas",
     totalEducationServices: "Total de servicios educativos provistos", totalEducationUB: "Individuos servidos",
     unitCost: "Costo unitario", totalCostLabel: "Costo total",
-    vbsCamps: "Campamentos EBV", shelterServices: "Total servicios vivienda",
+    vbsCamps: "Campamentos EBV", shelterServices: "Total servicios",
+    shelterUB: "Familias servidas",
+    shelterFurniture: "Mobiliario", shelterAppliances: "Electrodomésticos",
+    shelterHousehold: "Enseres del hogar", shelterElectronics: "Electrónicos y suministros",
+    shelterItemsDelivered: "Items entregados", shelterFamiliesServed: "Familias servidas",
     lifeFarms: "Huertos de Vida", sharkTank: "Shark Tank PDV",
     revolvingFund: "Fondo Rotativo",
     idealFarm: "Huerto Ideal",
@@ -817,7 +831,36 @@ function Level2Page({ t, initialTab = "health", data, highlightKey }) {
 
       {tab === "shelter" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <StatCard label={t.shelterServices} value={D.shelter?.services ?? 0} color={C.blue} iconEl={<Icon.home />} highlight={highlightKey === 'shelter'} delay={0} />
+          <div className={`pdv-card pdv-summary-card ${highlightKey === 'shelter' ? 'pdv-highlight' : ''}`}>
+            <div className="pdv-summary-inner">
+              <div>
+                <div className="pdv-summary-lbl">{t.shelterServices}</div>
+                <div className="pdv-summary-val">{D.shelter?.services ?? 0}</div>
+              </div>
+              <div>
+                <div className="pdv-summary-lbl">{t.shelterUB}</div>
+                <div className="pdv-summary-val">{D.shelter?.ub ?? 0}</div>
+              </div>
+            </div>
+          </div>
+
+          <Grid cols={2}>
+            <StatCard label={t.shelterFurniture}   value={D.shelter?.furniture?.services   ?? 0} color={C.blue}   iconEl={<Icon.home />}   delay={0}   />
+            <StatCard label={`${t.shelterFamiliesServed}`} value={D.shelter?.furniture?.ub ?? 0} color={C.teal} iconEl={<Icon.people />} delay={60}  />
+          </Grid>
+          <Grid cols={2}>
+            <StatCard label={t.shelterAppliances}  value={D.shelter?.appliances?.services  ?? 0} color={C.orange} iconEl={<Icon.home />}   delay={120} />
+            <StatCard label={`${t.shelterFamiliesServed}`} value={D.shelter?.appliances?.ub ?? 0} color={C.teal} iconEl={<Icon.people />} delay={180} />
+          </Grid>
+          <Grid cols={2}>
+            <StatCard label={t.shelterHousehold}   value={D.shelter?.household?.services   ?? 0} color={C.green}  iconEl={<Icon.home />}   delay={240} />
+            <StatCard label={`${t.shelterFamiliesServed}`} value={D.shelter?.household?.ub ?? 0} color={C.teal} iconEl={<Icon.people />} delay={300} />
+          </Grid>
+          <Grid cols={2}>
+            <StatCard label={t.shelterElectronics} value={D.shelter?.electronics?.services ?? 0} color={C.purple} iconEl={<Icon.home />}   delay={360} />
+            <StatCard label={`${t.shelterFamiliesServed}`} value={D.shelter?.electronics?.ub ?? 0} color={C.teal} iconEl={<Icon.people />} delay={420} />
+          </Grid>
+
           <Card>
             <p className="pdv-info-text">{t.serviceProviders}</p>
           </Card>
