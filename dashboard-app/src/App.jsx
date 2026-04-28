@@ -32,12 +32,16 @@ const FALLBACK_DATA = {
     totalChampions: { goal: 40, done: 52 },
     basicFarm:      { goal: 118, done: 154 },
     multiplication: { goal: 108, done: 112 },
+    urbanFarm:      { goal: null, done: 0 },
   },
   meps: {
     total: 286, active: 17, inactive: 76, finished: 113, aborted: 80, marketReady: 8,
     byLocation: { quito: 286, otavalo: 285, mantaRiobamba: 1 },
   },
   sharkTank:    null,
+  level1: { individualsServed: null, totalCost: null },
+  level2: { individualsServed: null, totalCost: null },
+  level3: { individualsServed: null, totalCost: null },
   evangelism:   { bibles: 34, vbsCamps: 9, childrenVBS: 228, personasAlcanzadas: 593 },
   beneficiaries: {
     combined: { accounts: 623, beneficiaries: 2337, girls: 359, boys: 364, families: 23, newUB: 557 },
@@ -125,6 +129,7 @@ const i18n = {
     basicFarmDesc: "New cases + seedling production",
     multiplicationFarm: "Multiplication",
     multiplicationDesc: "Selected cases + support",
+    urbanFarms: "Urban Life Farms", urbanFarmsTabDesc: "Family-run home gardens adapted for urban areas.", urbanFarmsCount: "Urban Life Farms Count",
     goal: "Goal", done: "Done",
     totalMEPs: "Total MEPs", active: "Active", inactive: "Inactive",
     finished: "Finished", aborted: "Aborted", marketReady: "Market Ready",
@@ -133,9 +138,11 @@ const i18n = {
     byLocation: "By Location",
     quito: "Quito", otavalo: "Otavalo", mantaRiobamba: "Manta & Riobamba",
     biblesDelivered: "Bibles distributed",
-    vbsCampsHeld: "VBS CAMP HELD",
+    vbsCampsHeld: "VBS CAMPS HELD",
     childrenVBS: "Kids served",
     personasAlcanzadas: "Individuals reached by the gospel",
+    individualsServed: "Individuals served",
+    clothingDonationsCount: "Number of clothing donations",
     activeAccounts: "Active accounts", activeBeneficiaries: "Active beneficiaries",
     activeGirls: "Active girls", activeBoys: "Active boys",
     acceptedFamilies: "New families this year", acceptedUB: "New Individuals",
@@ -145,6 +152,17 @@ const i18n = {
     championsLabel: "Champions (Full Size)",
     growthLabel: "Growth Pipeline",
     clinicTitle: "Medical Care Provided By Clinica la Y",
+    hotMealsTabDesc: "Freshly prepared meals served on-site to families and children at outreach events and weekly community gatherings.",
+    groceriesTabDesc: "Bags of staple groceries delivered to vulnerable families to cover basic monthly nutrition needs.",
+    clothingTabDesc: "Donated clothing distributed to families in our service communities, sorted and given according to need.",
+    emergencyTabDesc: "Rapid-response aid delivered to beneficiaries facing natural disasters, accidents, or unexpected crises.",
+    christmasTabDesc: "Annual Christmas program providing hot meals, toys, and candy bags to children and families across our communities.",
+    healthTabDesc: "Medical care through Clínica la Y, plus specialist appointments, medicines, and other health assistance for beneficiaries.",
+    educationTabDesc: "School kits, backpacks, and educational support that keep beneficiary children enrolled and ready for the school year.",
+    shelterTabDesc: "Furniture, appliances, household goods, and electronics donated to improve the daily living environment of beneficiary families.",
+    lifeFarmsTabDesc: "Family-run home gardens with seedlings, training, and supplies that produce food and generate income.",
+    revolvingFundTabDesc: "Micro-Entrepreneurial Projects (MEPs) backed by seed capital and accompaniment so families can launch sustainable businesses.",
+    sharkTankTabDesc: "Pitch and accelerator program connecting promising MEPs with mentorship, exposure, and additional investment.",
   },
   es: {
     overview: "Resumen",
@@ -197,6 +215,7 @@ const i18n = {
     basicFarmDesc: "Nuevos casos + producción plántulas",
     multiplicationFarm: "Multiplicación",
     multiplicationDesc: "Casos seleccionados + apoyo",
+    urbanFarms: "Huertos de Vida Urbanos", urbanFarmsTabDesc: "Huertos familiares adaptados para zonas urbanas.", urbanFarmsCount: "Cantidad de Huertos Urbanos",
     goal: "Meta", done: "Realizado",
     totalMEPs: "Total MEPs", active: "Activos", inactive: "Inactivos",
     finished: "Finalizados", aborted: "Cancelados", marketReady: "Listos para Mercado",
@@ -205,9 +224,11 @@ const i18n = {
     byLocation: "Por Ubicación",
     quito: "Quito", otavalo: "Otavalo", mantaRiobamba: "Manta y Riobamba",
     biblesDelivered: "Biblias distribuidas",
-    vbsCampsHeld: "CAMPAMENTO EBV REALIZADO",
+    vbsCampsHeld: "CAMPAMENTOS EBV REALIZADOS",
     childrenVBS: "Niños servidos",
     personasAlcanzadas: "Individuos alcanzados por el evangelio",
+    individualsServed: "Individuos servidos",
+    clothingDonationsCount: "Número de donaciones de ropa",
     activeAccounts: "Cuentas activas", activeBeneficiaries: "Beneficiarios activos",
     activeGirls: "Niñas activas", activeBoys: "Niños activos",
     acceptedFamilies: "Nuevas familias este año", acceptedUB: "Nuevos Individuos",
@@ -217,6 +238,17 @@ const i18n = {
     championsLabel: "Campeones (Tamaño Completo)",
     growthLabel: "Pipeline de Crecimiento",
     clinicTitle: "Atención Médica Provista por Clínica la Y",
+    hotMealsTabDesc: "Comidas recién preparadas servidas en el lugar a familias y niños en eventos de extensión y reuniones comunitarias semanales.",
+    groceriesTabDesc: "Fundas de víveres básicos entregadas a familias vulnerables para cubrir las necesidades alimenticias mensuales.",
+    clothingTabDesc: "Ropa donada distribuida a familias de las comunidades que servimos, clasificada y entregada según la necesidad.",
+    emergencyTabDesc: "Ayuda de respuesta rápida entregada a beneficiarios que enfrentan desastres naturales, accidentes o crisis inesperadas.",
+    christmasTabDesc: "Programa navideño anual que provee comidas calientes, juguetes y fundas de caramelos a niños y familias de nuestras comunidades.",
+    healthTabDesc: "Atención médica en Clínica la Y, además de citas con especialistas, medicinas y otras ayudas de salud para los beneficiarios.",
+    educationTabDesc: "Kits escolares, mochilas y apoyo educativo que mantienen a los niños beneficiarios matriculados y listos para el año escolar.",
+    shelterTabDesc: "Mobiliario, electrodomésticos, enseres del hogar y electrónicos donados para mejorar el entorno diario de las familias beneficiarias.",
+    lifeFarmsTabDesc: "Huertos familiares con plántulas, capacitación y suministros para producir alimentos y generar ingresos.",
+    revolvingFundTabDesc: "Proyectos Micro-Empresariales (MEPs) con capital semilla y acompañamiento para que las familias inicien negocios sostenibles.",
+    sharkTankTabDesc: "Programa de pitch y aceleración que conecta MEPs prometedores con mentoría, exposición e inversión adicional.",
   },
 };
 
@@ -370,6 +402,26 @@ function BarChart({ data, color = C.blue }) {
   );
 }
 
+function MonthlyDistribution({ t, monthly, color = C.blue }) {
+  const m = Array.isArray(monthly) ? monthly : [];
+  return (
+    <Card>
+      <SectionTitle>{t.monthlyDistribution}</SectionTitle>
+      <BarChart
+        color={color}
+        data={[
+          { label: t.jan, value: m[0] ?? 0 },
+          { label: t.feb, value: m[1] ?? 0 },
+          { label: t.mar, value: m[2] ?? 0 },
+          { label: t.apr, value: m[3] ?? 0 },
+          { label: t.may, value: m[4] ?? 0 },
+          { label: t.jun, value: m[5] ?? 0 },
+        ]}
+      />
+    </Card>
+  );
+}
+
 function DonutChart({ segments, size = 140, stroke = 20 }) {
   const [a, setA] = useState(false);
   useEffect(() => {
@@ -431,6 +483,15 @@ function TabBar({ tabs, active, onChange }) {
           {tab.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+function TabDescription({ children }) {
+  if (!children) return null;
+  return (
+    <div className="pdv-tab-desc">
+      {children}
     </div>
   );
 }
@@ -571,28 +632,36 @@ function OverviewPage({ t, onNavigate, data }) {
     (D.lifeFarms?.idealFarm?.done      ?? 0) +
     (D.lifeFarms?.fullSizeFarm?.done   ?? 0) +
     (D.lifeFarms?.basicFarm?.done      ?? 0) +
-    (D.lifeFarms?.multiplication?.done ?? 0);
-  const totalCostFmt = `$${(D.groceries?.totalCost ?? 0).toLocaleString()}`;
+    (D.lifeFarms?.multiplication?.done ?? 0) +
+    (D.lifeFarms?.urbanFarm?.done      ?? 0);
+
+  const fmtCount = (n) => (n == null ? "—" : n.toLocaleString());
+  const fmtMoney = (n) =>
+    n == null ? "—" : `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   // label keys matching ITEM_NAV keys
   const levelSections = [
     { lvl: "1", name: t.level1Name, color: C.orange, items: [
-      { label: t.hotMeals,    val: D.hotMeals?.plates        ?? 0, navKey: "hotMeals"    },
-      { label: t.groceries,   val: D.groceries?.bags          ?? 0, navKey: "groceries"   },
-      { label: t.clothing,    val: D.clothing?.donations       ?? 0, navKey: "clothing"    },
-      { label: t.totalCost,   val: totalCostFmt,                     navKey: "totalCost"   },
+      { label: t.hotMeals,                val: D.hotMeals?.plates      ?? 0, navKey: "hotMeals"          },
+      { label: t.groceries,               val: D.groceries?.bags       ?? 0, navKey: "groceries"         },
+      { label: t.clothingDonationsCount,  val: D.clothing?.donations   ?? 0, navKey: "clothing"          },
+      { label: t.individualsServed,       val: fmtCount(D.level1?.individualsServed), navKey: "individualsServedL1" },
+      { label: t.totalCost,               val: fmtMoney(D.level1?.totalCost),          navKey: "totalCost" },
     ]},
     { lvl: "2", name: t.level2Name, color: C.blue, items: [
-      { label: t.health,        val: D.health?.totalServices   ?? 0, navKey: "health"       },
-      { label: t.education,     val: eduTotal,                        navKey: "education"    },
-      { label: t.shelter,       val: D.shelter?.services        ?? 0, navKey: "shelter"      },
-      { label: t.totalHealthUB, val: D.health?.totalUB          ?? 0, navKey: "totalHealthUB"},
+      { label: t.health,             val: D.health?.totalServices ?? 0, navKey: "health"       },
+      { label: t.education,          val: eduTotal,                     navKey: "education"    },
+      { label: t.shelter,            val: D.shelter?.services     ?? 0, navKey: "shelter"      },
+      { label: t.individualsServed,  val: fmtCount(D.level2?.individualsServed), navKey: "individualsServedL2" },
+      { label: t.totalCost,          val: fmtMoney(D.level2?.totalCost),          navKey: "totalCostL2" },
     ]},
     { lvl: "3", name: t.level3Name, color: C.green, items: [
-      { label: t.lifeFarms,     val: lifeFarmsTotal,                  navKey: "lifeFarms"    },
-      { label: t.revolvingFund, val: D.meps?.total              ?? 0, navKey: "revolvingFund"},
-      { label: t.marketReady,   val: D.meps?.marketReady         ?? 0, navKey: "marketReady" },
-      { label: t.sharkTank,     val: "—",                             navKey: "sharkTank"    },
+      { label: t.lifeFarms,          val: lifeFarmsTotal,               navKey: "lifeFarms"    },
+      { label: t.revolvingFund,      val: D.meps?.total           ?? 0, navKey: "revolvingFund"},
+      { label: t.marketReady,        val: D.meps?.marketReady     ?? 0, navKey: "marketReady" },
+      { label: t.sharkTank,          val: "—",                          navKey: "sharkTank"    },
+      { label: t.individualsServed,  val: fmtCount(D.level3?.individualsServed), navKey: "individualsServedL3" },
+      { label: t.totalCost,          val: fmtMoney(D.level3?.totalCost),          navKey: "totalCostL3" },
     ]},
   ];
 
@@ -632,23 +701,25 @@ function OverviewPage({ t, onNavigate, data }) {
               <ClickableCard
                 color={sec.color}
                 label={t.viewDetail}
-                style={{ borderLeft: `3px solid ${sec.color}`, paddingBottom: 12 }}
+                style={{ borderLeft: `3px solid ${sec.color}`, paddingTop: 20, paddingBottom: 22, paddingLeft: 22, paddingRight: 22, minHeight: 360 }}
                 onClick={() => onNavigate(LEVEL_NAV[sec.lvl].page)}
               >
                 <LevelBadge level={sec.lvl} name={sec.name} color={sec.color} />
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 22, rowGap: 22, marginTop: 14 }}>
                   {sec.items.map((item, j) => (
                     <div
                       key={j}
                       onClick={(e) => {
-                        e.stopPropagation();
                         const nav = ITEM_NAV[item.navKey];
-                        if (nav) onNavigate(nav.page, nav.tab, item.navKey);
+                        if (nav) {
+                          e.stopPropagation();
+                          onNavigate(nav.page, nav.tab, item.navKey);
+                        }
                       }}
                       style={{
                         cursor: "pointer",
-                        padding: "6px 8px",
-                        borderRadius: 8,
+                        padding: "10px 12px",
+                        borderRadius: 10,
                         transition: "background 120ms ease",
                       }}
                       onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.04)"}
@@ -656,10 +727,11 @@ function OverviewPage({ t, onNavigate, data }) {
                     >
                       <div style={{
                         fontSize: 12, fontWeight: 600, color: C.text4,
-                        marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.06em",
+                        marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em",
+                        lineHeight: 1.3, minHeight: 32,
                       }}>{item.label}</div>
                       <div style={{
-                        fontSize: 28, fontWeight: 500, color: C.text1, letterSpacing: "-0.03em",
+                        fontSize: 30, fontWeight: 500, color: C.text1, letterSpacing: "-0.03em",
                       }}>
                         {typeof item.val === "number" ? item.val.toLocaleString() : item.val}
                       </div>
@@ -717,43 +789,52 @@ function Level1Page({ t, initialTab = "hotmeals", data, highlightKey }) {
       ]} active={tab} onChange={setTab} />
 
       {tab === "hotmeals" && (
-        <Grid cols={2}>
-          <StatCard label={t.hotMealsDelivered} value={D.hotMeals?.plates   ?? 0} color={C.red}    iconEl={<Icon.bag />}    highlight={highlightKey === 'hotMeals'} delay={0}  />
-          <StatCard label={t.familiesHotMeals}  value={D.hotMeals?.families ?? 0} color={C.orange} iconEl={<Icon.people />} delay={60} />
-        </Grid>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <TabDescription>{t.hotMealsTabDesc}</TabDescription>
+          <Grid cols={2}>
+            <StatCard label={t.hotMealsDelivered} value={D.hotMeals?.plates   ?? 0} color={C.red}    iconEl={<Icon.bag />}    highlight={highlightKey === 'hotMeals'} delay={0}  />
+            <StatCard label={t.familiesHotMeals}  value={D.hotMeals?.families ?? 0} color={C.orange} iconEl={<Icon.people />} delay={60} />
+          </Grid>
+          <MonthlyDistribution t={t} monthly={D.hotMeals?.monthly} color={C.red} />
+        </div>
       )}
 
       {tab === "groceries" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <TabDescription>{t.groceriesTabDesc}</TabDescription>
           <Grid cols={4}>
             <StatCard label={t.groceryBags} value={D.groceries?.bags ?? 0}      color={C.yellow} iconEl={<Icon.cart />}   highlight={highlightKey === 'groceries'} delay={0}   />
             <StatCard label={t.ubGrocery}   value={D.groceries?.ub   ?? 0}       color={C.orange} iconEl={<Icon.people />} delay={60}  />
             <StatCard label={t.avgCost}     value={(D.groceries?.avgCost   ?? 0).toFixed(2)} prefix="$" color={C.teal}  iconEl={<Icon.dollar />} delay={120} />
             <StatCard label={t.totalCost}   value={(D.groceries?.totalCost ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="$" color={C.green} iconEl={<Icon.money />} highlight={highlightKey === 'totalCost'} delay={180} />
           </Grid>
-          <Card>
-            <SectionTitle>{t.monthlyDistribution}</SectionTitle>
-            <BarChart data={[
-              { label: t.jan, value: D.groceries?.monthly?.[0] ?? 0, color: "#f28b82" },
-              { label: t.feb, value: D.groceries?.monthly?.[1] ?? 0, color: "#b39ddb" },
-              { label: t.mar, value: D.groceries?.monthly?.[2] ?? 0, color: "#81d4fa" },
-              { label: t.apr, value: D.groceries?.monthly?.[3] ?? 0 },
-              { label: t.may, value: D.groceries?.monthly?.[4] ?? 0 },
-              { label: t.jun, value: D.groceries?.monthly?.[5] ?? 0 },
-            ]} />
-          </Card>
+          <MonthlyDistribution t={t} monthly={D.groceries?.monthly} color={C.yellow} />
         </div>
       )}
 
       {tab === "clothing" && (
-        <Grid cols={2}>
-          <StatCard label={t.clothingDonations} value={D.clothing?.donations ?? 0} color={C.purple} iconEl={<Icon.shirt />} highlight={highlightKey === 'clothing'} delay={0}  />
-          <StatCard label={t.ubClothing}        value={D.clothing?.ub        ?? 0} color={C.teal}   iconEl={<Icon.people />} delay={60} />
-        </Grid>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <TabDescription>{t.clothingTabDesc}</TabDescription>
+          <Grid cols={2}>
+            <StatCard label={t.clothingDonations} value={D.clothing?.donations ?? 0} color={C.purple} iconEl={<Icon.shirt />} highlight={highlightKey === 'clothing'} delay={0}  />
+            <StatCard label={t.ubClothing}        value={D.clothing?.ub        ?? 0} color={C.teal}   iconEl={<Icon.people />} delay={60} />
+          </Grid>
+          <MonthlyDistribution t={t} monthly={D.clothing?.monthly} color={C.purple} />
+        </div>
       )}
 
-      {tab === "emergency" && <EmptyState message={t.noDataYet} />}
-      {tab === "christmas"  && <EmptyState message={t.noDataYet} />}
+      {tab === "emergency" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <TabDescription>{t.emergencyTabDesc}</TabDescription>
+          <MonthlyDistribution t={t} monthly={D.emergency?.monthly} color={C.red} />
+        </div>
+      )}
+      {tab === "christmas" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <TabDescription>{t.christmasTabDesc}</TabDescription>
+          <MonthlyDistribution t={t} monthly={D.christmas?.monthly} color={C.green} />
+        </div>
+      )}
     </div>
   );
 }
@@ -772,6 +853,7 @@ function Level2Page({ t, initialTab = "health", data, highlightKey }) {
 
       {tab === "health" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <TabDescription>{t.healthTabDesc}</TabDescription>
           <div className={`pdv-card pdv-summary-card ${highlightKey === 'health' || highlightKey === 'totalHealthUB' ? 'pdv-highlight' : ''}`}>
             <div className="pdv-summary-inner">
               <div>
@@ -800,22 +882,13 @@ function Level2Page({ t, initialTab = "health", data, highlightKey }) {
             <StatCard label={t.investedOther}     value={(D.health?.other?.invested ?? 0).toFixed(2)} prefix="$" color={C.green} iconEl={<Icon.dollar />} delay={120} />
           </Grid>
 
-          <Card>
-            <SectionTitle>{t.monthlyDistribution}</SectionTitle>
-            <BarChart data={[
-              { label: t.jan, value: D.health?.monthly?.[0] ?? 0, color: C.blueLight },
-              { label: t.feb, value: D.health?.monthly?.[1] ?? 0, color: "#f48fb1" },
-              { label: t.mar, value: D.health?.monthly?.[2] ?? 0 },
-              { label: t.apr, value: D.health?.monthly?.[3] ?? 0 },
-              { label: t.may, value: D.health?.monthly?.[4] ?? 0 },
-              { label: t.jun, value: D.health?.monthly?.[5] ?? 0 },
-            ]} />
-          </Card>
+          <MonthlyDistribution t={t} monthly={D.health?.monthly} color={C.blue} />
         </div>
       )}
 
       {tab === "education" && (
         <div className={highlightKey === 'education' ? 'pdv-highlight' : ''} style={{ display: "flex", flexDirection: "column", gap: 20, padding: highlightKey === 'education' ? 8 : 0, borderRadius: 24 }}>
+          <TabDescription>{t.educationTabDesc}</TabDescription>
           <Grid cols={3}>
             <StatCard label={t.schoolKits}                 value={D.education?.schoolKits   ?? 0}   color={C.red}    iconEl={<Icon.backpack />} delay={0}   />
             <StatCard label={`${t.unitCost} (kit)`}        value={(D.education?.schoolKitCost ?? 0).toFixed(2)} prefix="$" color={C.yellow} iconEl={<Icon.dollar />} delay={60}  />
@@ -826,11 +899,13 @@ function Level2Page({ t, initialTab = "health", data, highlightKey }) {
             <StatCard label={`${t.unitCost} (${t.backpacks.toLowerCase()})`}       value={(D.education?.backpackCost ?? 0).toFixed(2)} prefix="$" color={C.yellow} iconEl={<Icon.dollar />} delay={240} />
             <StatCard label={`${t.totalCostLabel} (${t.backpacks.toLowerCase()})`} value={((D.education?.backpacks ?? 0) * (D.education?.backpackCost ?? 0)).toFixed(2)} prefix="$" color={C.green}  iconEl={<Icon.money />}  delay={300} />
           </Grid>
+          <MonthlyDistribution t={t} monthly={D.education?.monthly} color={C.blue} />
         </div>
       )}
 
       {tab === "shelter" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <TabDescription>{t.shelterTabDesc}</TabDescription>
           <div className={`pdv-card pdv-summary-card ${highlightKey === 'shelter' ? 'pdv-highlight' : ''}`}>
             <div className="pdv-summary-inner">
               <div>
@@ -864,6 +939,7 @@ function Level2Page({ t, initialTab = "health", data, highlightKey }) {
           <Card>
             <p className="pdv-info-text">{t.serviceProviders}</p>
           </Card>
+          <MonthlyDistribution t={t} monthly={D.shelter?.monthly} color={C.purple} />
         </div>
       )}
     </div>
@@ -877,13 +953,15 @@ function Level3Page({ t, initialTab = "lifefarms", data, highlightKey }) {
     <div>
       <LevelBadge level="3" name={t.level3Name} color={C.green} />
       <TabBar tabs={[
-        { id: "lifefarms", label: t.lifeFarms     },
-        { id: "revolving", label: t.revolvingFund },
-        { id: "sharktank", label: t.sharkTank     },
+        { id: "lifefarms",  label: t.lifeFarms     },
+        { id: "urbanfarms", label: t.urbanFarms    },
+        { id: "revolving",  label: t.revolvingFund },
+        { id: "sharktank",  label: t.sharkTank     },
       ]} active={tab} onChange={setTab} />
 
       {tab === "lifefarms" && (
         <div className={highlightKey === 'lifeFarms' ? 'pdv-highlight' : ''} style={{ display: "flex", flexDirection: "column", gap: 20, padding: highlightKey === 'lifeFarms' ? 8 : 0, borderRadius: 24 }}>
+          <TabDescription>{t.lifeFarmsTabDesc}</TabDescription>
           <SectionTitle>{t.championsLabel}</SectionTitle>
           <Grid cols={3}>
             <ProgressBar label={t.idealFarm}     description={t.idealFarmDesc}    goal={D.lifeFarms?.idealFarm?.goal      ?? 30}  done={D.lifeFarms?.idealFarm?.done      ?? 0}  color={C.yellow} />
@@ -895,11 +973,23 @@ function Level3Page({ t, initialTab = "lifefarms", data, highlightKey }) {
             <ProgressBar label={t.basicFarm}          description={t.basicFarmDesc}      goal={D.lifeFarms?.basicFarm?.goal      ?? 118} done={D.lifeFarms?.basicFarm?.done      ?? 0} color={C.orange} />
             <ProgressBar label={t.multiplicationFarm} description={t.multiplicationDesc} goal={D.lifeFarms?.multiplication?.goal ?? 108} done={D.lifeFarms?.multiplication?.done ?? 0} color={C.purple} />
           </Grid>
+          <MonthlyDistribution t={t} monthly={D.lifeFarms?.monthly} color={C.green} />
+        </div>
+      )}
+
+      {tab === "urbanfarms" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <TabDescription>{t.urbanFarmsTabDesc}</TabDescription>
+          <Grid cols={4}>
+            <StatCard label={t.urbanFarmsCount} value={D.lifeFarms?.urbanFarm?.done ?? 0} color={C.green} iconEl={<Icon.leaf />} delay={0} />
+          </Grid>
+          <MonthlyDistribution t={t} monthly={D.lifeFarms?.urbanMonthly} color={C.green} />
         </div>
       )}
 
       {tab === "revolving" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <TabDescription>{t.revolvingFundTabDesc}</TabDescription>
           <Grid cols={3}>
             <StatCard label={t.totalMEPs}   value={D.meps?.total       ?? 0} color={C.text1}  iconEl={<Icon.chart />} highlight={highlightKey === 'revolvingFund'} delay={0}   />
             <StatCard label={t.active}      value={D.meps?.active      ?? 0} color={C.green}  iconEl={<Icon.check />} delay={60}  />
@@ -942,10 +1032,17 @@ function Level3Page({ t, initialTab = "lifefarms", data, highlightKey }) {
               </div>
             </Card>
           </div>
+          <MonthlyDistribution t={t} monthly={D.meps?.monthly} color={C.text1} />
         </div>
       )}
 
-      {tab === "sharktank" && <EmptyState message={t.sharkTankPlaceholder} />}
+      {tab === "sharktank" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <TabDescription>{t.sharkTankTabDesc}</TabDescription>
+          <EmptyState message={t.sharkTankPlaceholder} />
+          <MonthlyDistribution t={t} monthly={D.sharkTank?.monthly} color={C.teal} />
+        </div>
+      )}
     </div>
   );
 }
@@ -973,6 +1070,7 @@ function EvangelismPage({ t, data, highlightKey }) {
         <StatCard label={t.childrenVBS}         value={D.evangelism?.childrenVBS         ?? 0} color={C.red}    iconEl={<Icon.child />}  highlight={highlightKey === 'childrenVBS'} delay={160} />
         <StatCard label={t.personasAlcanzadas}  value={D.evangelism?.personasAlcanzadas  ?? 0} color={C.green}  iconEl={<Icon.people />} highlight={highlightKey === 'personasAlcanzadas'} delay={240} />
       </Grid>
+      <MonthlyDistribution t={t} monthly={D.evangelism?.monthly} color={C.purple} />
     </div>
   );
 }

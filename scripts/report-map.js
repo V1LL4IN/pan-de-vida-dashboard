@@ -49,13 +49,17 @@ export const REPORT_IDS = {
   education_backpacks:         "00OUc000007IKAjMAO",  // Mochilas
   education_backpacks_cost:    "00OUc000007IuVxMAK",  // Mochilas AVG Cost
   education_vbs:               "00OUc000007IzQnMAK",  // Campamentos VBS
-  shelter:                     "REPLACE_ME",           // pendiente — agrega el reporte cuando esté listo
+  shelter_furniture:           "00OUc000009VEG2MAO",  // Mobiliario
+  shelter_appliances:          "00OUc000009VFC5MAO",  // Electrodomésticos
+  shelter_household:           "00OUc000009VFNNMA4",  // Enseres del hogar
+  shelter_electronics:         "00OUc000009VFSDMA4",  // Electrónicos y suministros
 
   // ── Level 3 · Desarrollo ───────────────────────────────────────────────────
   life_farms_ideal:            "00OUc0000085ebJMAQ",  // HUERTOS DE VIDA IDEAL
   life_farms_full:             "00OUc0000085gA5MAI",  // HUERTOS DE VIDA COMPLETO1
   life_farms_basic:            "00OUc0000083PBlMAM",  // HUERTOS DE VIDA BÁSICOS
   life_farms_multiplication:   "00OUc0000083PWjMAM",  // HUERTOS DE VIDA MULTIPLICACIÓN
+  life_farms_urban:            "00OUc000009hW5tMAE",  // HUERTOS DE VIDA URBANO
   meps:                        "REPLACE_ME",           // pendiente — confirma el nombre del reporte MEPs
 
   // ── Evangelización ─────────────────────────────────────────────────────────
@@ -110,6 +114,76 @@ function countChildren(report, maxAge = 13) {
   return { girls, boys };
 }
 
+// ─── Helper: bin row delivery dates into a 12-month array ────────────────────
+// Every Salesforce report now includes a delivery-date column. We auto-detect
+// it from detailColumnInfo (preferring dataType=date/datetime, falling back to
+// any API name containing "date"), then walk every row in the factMap and
+// either sum a quantity column or count rows per month.
+//
+// Returns a 12-element array indexed by calendar month (0=Jan…11=Dec).
+function monthlyByDate(report, opts = {}) {
+  const out = new Array(12).fill(0);
+  if (!report) return out;
+
+  const colInfo  = report.reportExtendedMetadata?.detailColumnInfo ?? {};
+  const colNames = Object.keys(colInfo);
+  if (!colNames.length) return out;
+
+  // Locate the delivery-date column.
+  let dateIdx = colNames.findIndex(n => {
+    const dt = colInfo[n]?.dataType;
+    return dt === "date" || dt === "datetime";
+  });
+  if (dateIdx === -1) {
+    dateIdx = colNames.findIndex(n => /date/i.test(n) || /date/i.test(colInfo[n]?.label ?? ""));
+  }
+  if (dateIdx === -1) return out;
+
+  // Locate an optional quantity column to sum (defaults to row count).
+  let qtyIdx = -1;
+  if (opts.quantityColumn) {
+    qtyIdx = colNames.findIndex(n => n === opts.quantityColumn || n.endsWith("." + opts.quantityColumn));
+  } else {
+    qtyIdx = colNames.findIndex(n => /quantity/i.test(n) || /quantity/i.test(colInfo[n]?.label ?? ""));
+  }
+
+  // Restrict to a calendar year if requested.
+  const year = opts.year ?? null;
+
+  for (const [key, entry] of Object.entries(report.factMap ?? {})) {
+    // Tabular reports keep rows under T!T; summary reports keep them under
+    // grouping keys (0!T, 1!T, …) and leave T!T.rows empty — iterating every
+    // entry covers both shapes without double-counting.
+    for (const row of entry.rows ?? []) {
+      const cells = row.dataCells ?? [];
+      const raw   = cells[dateIdx]?.value;
+      if (!raw) continue;
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) continue;
+      if (year != null && d.getUTCFullYear() !== year) continue;
+
+      let inc = 1;
+      if (qtyIdx >= 0) {
+        const v = Number(cells[qtyIdx]?.value);
+        if (Number.isFinite(v)) inc = v;
+      }
+      out[d.getUTCMonth()] += inc;
+    }
+  }
+
+  return out;
+}
+
+// Element-wise sum of several monthly arrays (same length).
+function sumMonthly(...arrays) {
+  const out = new Array(12).fill(0);
+  for (const arr of arrays) {
+    if (!Array.isArray(arr)) continue;
+    for (let i = 0; i < out.length; i++) out[i] += arr[i] ?? 0;
+  }
+  return out;
+}
+
 // ─── Transform Functions ──────────────────────────────────────────────────────
 
 function extractOverview(r) {
@@ -121,6 +195,7 @@ function extractHotMeals(r) {
   return {
     plates:   total(r.hot_meals),
     families: total(r.hot_meals_families, 1), // aggregate[1] = Record Count = unique families served
+    monthly:  monthlyByDate(r.hot_meals),
   };
 }
 
@@ -130,8 +205,6 @@ function extractGroceries(r) {
   //   aggregate[1] = Sum of Total Cost ($)
   //   aggregate[2] = Average Total Cost (avg cost per bag)
   //   aggregate[3] = RowCount (unique beneficiaries — verify against groceries_bu)
-  // Monthly breakdown: not available as separate reports — left as zeros until
-  // a monthly-grouped report is created in Salesforce.
   const bags      = total(r.groceries_avg_cost, 0);
   const totalCost = total(r.groceries_avg_cost, 1);
   const avgCost   = total(r.groceries_avg_cost, 2);
@@ -141,7 +214,7 @@ function extractGroceries(r) {
     ub:        ubBU,
     avgCost,
     totalCost,
-    monthly:   [0, 0, 0, 0, 0, 0],
+    monthly:   monthlyByDate(r.groceries),
   };
 }
 
@@ -149,6 +222,7 @@ function extractClothing(r) {
   return {
     donations: total(r.clothing),
     ub:        total(r.clothing_bu, 1), // aggregate[1] = Record Count = unique beneficiaries (50)
+    monthly:   monthlyByDate(r.clothing),
   };
 }
 
@@ -184,7 +258,10 @@ function extractHealth(r) {
       ub:       otherUB,
       invested: otherInvested,
     },
-    monthly: [0, 0, 0, 0, 0, 0],
+    monthly: sumMonthly(
+      monthlyByDate(r.health_clinic_atenciones),
+      monthlyByDate(r.health_other),
+    ),
   };
 }
 
@@ -195,12 +272,49 @@ function extractEducation(r) {
   const backpackCost  = total(r.education_backpacks_cost);
   const vbsCamps      = total(r.education_vbs, 3); // aggregate[3] = Record Count = unique delivery dates = camps held
 
-  return { schoolKits: kits, schoolKitCost: kitCost, backpacks, backpackCost, vbsCamps };
+  return {
+    schoolKits: kits,
+    schoolKitCost: kitCost,
+    backpacks,
+    backpackCost,
+    vbsCamps,
+    monthly: sumMonthly(
+      monthlyByDate(r.education_kits),
+      monthlyByDate(r.education_backpacks),
+    ),
+  };
 }
 
 function extractShelter(r) {
+  // Each shelter report:
+  //   aggregate[0] = Sum of Quantity (total items/services)
+  //   aggregate[1] = Unique Count (unique beneficiaries / families served)
+  // Run inspect-report.js on each ID to verify aggregate indices.
+  const furniture    = total(r.shelter_furniture);
+  const furnitureUB  = total(r.shelter_furniture, 1);
+  const appliances   = total(r.shelter_appliances);
+  const appliancesUB = total(r.shelter_appliances, 1);
+  const household    = total(r.shelter_household);
+  const householdUB  = total(r.shelter_household, 1);
+  const electronics  = total(r.shelter_electronics);
+  const electronicsUB = total(r.shelter_electronics, 1);
+
+  const services = furniture + appliances + household + electronics;
+  const ub       = furnitureUB + appliancesUB + householdUB + electronicsUB;
+
   return {
-    services: total(r.shelter),
+    services,
+    ub,
+    furniture:   { services: furniture,   ub: furnitureUB   },
+    appliances:  { services: appliances,  ub: appliancesUB  },
+    household:   { services: household,   ub: householdUB   },
+    electronics: { services: electronics, ub: electronicsUB },
+    monthly: sumMonthly(
+      monthlyByDate(r.shelter_furniture),
+      monthlyByDate(r.shelter_appliances),
+      monthlyByDate(r.shelter_household),
+      monthlyByDate(r.shelter_electronics),
+    ),
   };
 }
 
@@ -210,6 +324,7 @@ function extractLifeFarms(r) {
   const fullDone     = total(r.life_farms_full);
   const basicDone    = total(r.life_farms_basic);
   const multiDone    = total(r.life_farms_multiplication);
+  const urbanDone    = total(r.life_farms_urban);
 
   return {
     idealFarm:      { goal: 30,  done: idealDone  },
@@ -217,6 +332,15 @@ function extractLifeFarms(r) {
     totalChampions: { goal: 40,  done: idealDone + fullDone },
     basicFarm:      { goal: 118, done: basicDone  },
     multiplication: { goal: 108, done: multiDone  },
+    urbanFarm:      { goal: null, done: urbanDone },
+    monthly: sumMonthly(
+      monthlyByDate(r.life_farms_ideal),
+      monthlyByDate(r.life_farms_full),
+      monthlyByDate(r.life_farms_basic),
+      monthlyByDate(r.life_farms_multiplication),
+      monthlyByDate(r.life_farms_urban)
+    ),
+    urbanMonthly: monthlyByDate(r.life_farms_urban),
   };
 }
 
@@ -265,6 +389,12 @@ function extractEvangelism(r) {
     vbsCamps,
     childrenVBS,
     personasAlcanzadas,
+    monthly: sumMonthly(
+      monthlyByDate(r.evangelism_bibles_es),
+      monthlyByDate(r.evangelism_bibles_qu),
+      monthlyByDate(r.evangelism_bibles_ninos),
+      monthlyByDate(r.evangelism_personas),
+    ),
   };
 }
 
@@ -322,12 +452,19 @@ function extractChristmas(r) {
     hotMeals:  total(r.christmas_comida),
     groceries: total(r.christmas_viveres),
     toys:      total(r.christmas_juguetes),
+    monthly: sumMonthly(
+      monthlyByDate(r.christmas_comida),
+      monthlyByDate(r.christmas_viveres),
+      monthlyByDate(r.christmas_juguetes),
+      monthlyByDate(r.christmas_other),
+    ),
   };
 }
 
 function extractEmergency(r) {
   return {
     groceries: total(r.emergency_viveres),
+    monthly:   monthlyByDate(r.emergency_viveres),
   };
 }
 
@@ -367,6 +504,33 @@ export function transformAll(r) {
     totalDeliveries,
   };
 
+  // ── Level cross-program aggregates (Overview cards) ──────────────────────────
+  // totalCost: sum of every cost component currently tracked in Salesforce.
+  // individualsServed: needs a per-level deduplicated UB report from Salesforce —
+  // summing each program's `ub` would double-count people who received services
+  // from more than one program. Leaving null until a dedicated report exists.
+  const level1Cost = (groceries?.totalCost ?? 0);
+  const level2Cost =
+    (health?.clinic?.paidVozManos ?? 0) +
+    (health?.clinic?.paidPDV      ?? 0) +
+    (health?.other?.invested      ?? 0) +
+    ((education?.schoolKits ?? 0) * (education?.schoolKitCost ?? 0)) +
+    ((education?.backpacks  ?? 0) * (education?.backpackCost  ?? 0));
+  const level3Cost = 0; // no cost components tracked yet (life farms / MEPs)
+
+  const level1 = {
+    individualsServed: null, // TODO: needs deduped report across hotMeals/groceries/clothing UBs
+    totalCost:         level1Cost > 0 ? level1Cost : null,
+  };
+  const level2 = {
+    individualsServed: null, // TODO: needs deduped report across health/education/shelter UBs
+    totalCost:         level2Cost > 0 ? level2Cost : null,
+  };
+  const level3 = {
+    individualsServed: null, // TODO: needs deduped report across life farms / MEPs participants
+    totalCost:         null, // TODO: add cost components when life farms / MEPs report cost
+  };
+
   return {
     overview,
     hotMeals,
@@ -382,5 +546,8 @@ export function transformAll(r) {
     beneficiaries: bene,
     christmas,
     emergency,
+    level1,
+    level2,
+    level3,
   };
 }

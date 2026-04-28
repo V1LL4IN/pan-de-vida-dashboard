@@ -26,7 +26,13 @@
       "Bash(python3 -c \"import json; d=json.load\\(open\\(''''../dashboard-app/public/data/dashboard.json''''\\)\\); print\\(''''evangelism:'''', d[''''evangelism'''']\\)\")",
       "Bash(python3 -c \":*)",
       "Bash(dig NS pandevida.engineering +short)",
-      "Bash(nslookup -type=NS pandevida.engineering)"
+      "Bash(nslookup -type=NS pandevida.engineering)",
+      "Bash(read d *)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3)",
+      "Bash(npx vite *)",
+      "Bash(npx eslint *)",
+      "Bash(node --check /Users/matiasvillarrealcruz/Documents/Github/pan-de-vida-dashboard/scripts/report-map.js)"
     ]
   }
 }

@@ -510,6 +510,17 @@ p { margin: 0; }
   font-weight: 500;
 }
 
+/* ── TAB DESCRIPTION ─────────────────────────────────── */
+.pdv-tab-desc {
+  font-size: var(--text-base);
+  color: var(--text-3);
+  line-height: 1.6;
+  padding: 4px 2px 8px;
+  margin-top: -8px;
+  letter-spacing: -0.005em;
+  max-width: 920px;
+}
+
 /* ── LEVEL BADGE ─────────────────────────────────────── */
 .pdv-level-badge {
   display: inline-flex;
