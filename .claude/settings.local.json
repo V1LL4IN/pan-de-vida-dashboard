@@ -32,7 +32,10 @@
       "Bash(python3)",
       "Bash(npx vite *)",
       "Bash(npx eslint *)",
-      "Bash(node --check /Users/matiasvillarrealcruz/Documents/Github/pan-de-vida-dashboard/scripts/report-map.js)"
+      "Bash(node --check /Users/matiasvillarrealcruz/Documents/Github/pan-de-vida-dashboard/scripts/report-map.js)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('sharkTank'\\), indent=2\\)\\); print\\('---lifeFarms keys:', list\\(d.get\\('lifeFarms',{}\\).keys\\(\\)\\)\\)\")",
+      "Bash(node --check scripts/report-map.js)",
+      "Bash(node inspect-report.js 00OUc000009o4o1MAA)"
     ]
   }
 }

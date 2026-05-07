@@ -38,7 +38,7 @@ const FALLBACK_DATA = {
     total: 286, active: 17, inactive: 76, finished: 113, aborted: 80, marketReady: 8,
     byLocation: { quito: 286, otavalo: 285, mantaRiobamba: 1 },
   },
-  sharkTank:    null,
+  sharkTank:    { winners: 0, pdvCost: 0, monthly: new Array(12).fill(0) },
   level1: { individualsServed: null, totalCost: null },
   level2: { individualsServed: null, totalCost: null },
   level3: { individualsServed: null, totalCost: null },
@@ -130,6 +130,7 @@ const i18n = {
     multiplicationFarm: "Multiplication",
     multiplicationDesc: "Selected cases + support",
     urbanFarms: "Urban Life Farms", urbanFarmsTabDesc: "Family-run home gardens adapted for urban areas.", urbanFarmsCount: "Urban Life Farms Count",
+    sharkTankWinners: "Shark Tank Winners", sharkTankPdvCost: "PDV Cost",
     goal: "Goal", done: "Done",
     totalMEPs: "Total MEPs", active: "Active", inactive: "Inactive",
     finished: "Finished", aborted: "Aborted", marketReady: "Market Ready",
@@ -216,6 +217,7 @@ const i18n = {
     multiplicationFarm: "Multiplicación",
     multiplicationDesc: "Casos seleccionados + apoyo",
     urbanFarms: "Huertos de Vida Urbanos", urbanFarmsTabDesc: "Huertos familiares adaptados para zonas urbanas.", urbanFarmsCount: "Cantidad de Huertos Urbanos",
+    sharkTankWinners: "Ganadores Shark Tank", sharkTankPdvCost: "Costo PDV",
     goal: "Meta", done: "Realizado",
     totalMEPs: "Total MEPs", active: "Activos", inactive: "Inactivos",
     finished: "Finalizados", aborted: "Cancelados", marketReady: "Listos para Mercado",
@@ -973,7 +975,6 @@ function Level3Page({ t, initialTab = "lifefarms", data, highlightKey }) {
             <ProgressBar label={t.basicFarm}          description={t.basicFarmDesc}      goal={D.lifeFarms?.basicFarm?.goal      ?? 118} done={D.lifeFarms?.basicFarm?.done      ?? 0} color={C.orange} />
             <ProgressBar label={t.multiplicationFarm} description={t.multiplicationDesc} goal={D.lifeFarms?.multiplication?.goal ?? 108} done={D.lifeFarms?.multiplication?.done ?? 0} color={C.purple} />
           </Grid>
-          <MonthlyDistribution t={t} monthly={D.lifeFarms?.monthly} color={C.green} />
         </div>
       )}
 
@@ -983,7 +984,6 @@ function Level3Page({ t, initialTab = "lifefarms", data, highlightKey }) {
           <Grid cols={4}>
             <StatCard label={t.urbanFarmsCount} value={D.lifeFarms?.urbanFarm?.done ?? 0} color={C.green} iconEl={<Icon.leaf />} delay={0} />
           </Grid>
-          <MonthlyDistribution t={t} monthly={D.lifeFarms?.urbanMonthly} color={C.green} />
         </div>
       )}
 
@@ -1032,15 +1032,16 @@ function Level3Page({ t, initialTab = "lifefarms", data, highlightKey }) {
               </div>
             </Card>
           </div>
-          <MonthlyDistribution t={t} monthly={D.meps?.monthly} color={C.text1} />
         </div>
       )}
 
       {tab === "sharktank" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <TabDescription>{t.sharkTankTabDesc}</TabDescription>
-          <EmptyState message={t.sharkTankPlaceholder} />
-          <MonthlyDistribution t={t} monthly={D.sharkTank?.monthly} color={C.teal} />
+          <Grid cols={4}>
+            <StatCard label={t.sharkTankWinners} value={D.sharkTank?.winners ?? 0} color={C.teal} iconEl={<Icon.star />} delay={0} />
+            <StatCard label={t.sharkTankPdvCost} value={(D.sharkTank?.pdvCost ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} prefix="$" color={C.green} iconEl={<Icon.money />} delay={60} />
+          </Grid>
         </div>
       )}
     </div>

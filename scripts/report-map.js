@@ -60,6 +60,7 @@ export const REPORT_IDS = {
   life_farms_basic:            "00OUc0000083PBlMAM",  // HUERTOS DE VIDA BÁSICOS
   life_farms_multiplication:   "00OUc0000083PWjMAM",  // HUERTOS DE VIDA MULTIPLICACIÓN
   life_farms_urban:            "00OUc000009hW5tMAE",  // HUERTOS DE VIDA URBANO
+  shark_tank_winners:          "00OUc000009o4o1MAA",  // Ganadores Shark Tank
   meps:                        "REPLACE_ME",           // pendiente — confirma el nombre del reporte MEPs
 
   // ── Evangelización ─────────────────────────────────────────────────────────
@@ -373,6 +374,15 @@ function extractMEPs(r) {
   };
 }
 
+function extractSharkTank(r) {
+  if (!r.shark_tank_winners) return null;
+  return {
+    winners: total(r.shark_tank_winners),       // aggregate[0] = Sum of Quantity = winner count
+    pdvCost: total(r.shark_tank_winners, 1),    // aggregate[1] = Sum of Cost PDV
+    monthly: monthlyByDate(r.shark_tank_winners),
+  };
+}
+
 function extractEvangelism(r) {
   const biblesES    = total(r.evangelism_bibles_es);
   const biblesQU    = total(r.evangelism_bibles_qu);
@@ -478,6 +488,7 @@ export function transformAll(r) {
   const shelter    = extractShelter(r);
   const lifeFarms  = extractLifeFarms(r);
   const meps       = extractMEPs(r);
+  const sharkTank  = extractSharkTank(r);
   const evangelism = extractEvangelism(r);
   const bene       = extractBeneficiaries(r);
   const christmas  = extractChristmas(r);
@@ -541,7 +552,7 @@ export function transformAll(r) {
     shelter,
     lifeFarms,
     meps,
-    sharkTank: null,
+    sharkTank,
     evangelism,
     beneficiaries: bene,
     christmas,

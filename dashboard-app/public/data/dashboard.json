@@ -1,18 +1,18 @@
 {
   "overview": {
-    "totalBeneficiaries": 2439,
-    "totalAccounts": 654,
-    "newFamilies": 35,
-    "totalDeliveries": 2412
+    "totalBeneficiaries": 2452,
+    "totalAccounts": 657,
+    "newFamilies": 39,
+    "totalDeliveries": 2436
   },
   "hotMeals": {
-    "plates": 1515,
+    "plates": 1524,
     "families": 130,
     "monthly": [
       83,
       313,
       743,
-      376,
+      385,
       0,
       0,
       0,
@@ -24,15 +24,15 @@
     ]
   },
   "groceries": {
-    "bags": 211,
-    "ub": 118,
-    "avgCost": 15.7365,
-    "totalCost": 3147.3,
+    "bags": 218,
+    "ub": 119,
+    "avgCost": 15.591980676328502,
+    "totalCost": 3227.54,
     "monthly": [
       29,
       48,
       79,
-      55,
+      62,
       0,
       0,
       0,
@@ -44,13 +44,13 @@
     ]
   },
   "clothing": {
-    "donations": 206,
-    "ub": 73,
+    "donations": 213,
+    "ub": 75,
     "monthly": [
       0,
       60,
       88,
-      58,
+      65,
       0,
       0,
       0,
@@ -71,15 +71,15 @@
       "paidPDV": 138
     },
     "other": {
-      "aids": 126,
-      "ub": 111,
-      "invested": 845.74
+      "aids": 127,
+      "ub": 112,
+      "invested": 930.74
     },
     "monthly": [
       170,
       95,
       166,
-      5,
+      6,
       0,
       0,
       0,
@@ -112,8 +112,8 @@
     ]
   },
   "shelter": {
-    "services": 47,
-    "ub": 38,
+    "services": 48,
+    "ub": 39,
     "furniture": {
       "services": 4,
       "ub": 3
@@ -123,8 +123,8 @@
       "ub": 1
     },
     "household": {
-      "services": 1,
-      "ub": 1
+      "services": 2,
+      "ub": 2
     },
     "electronics": {
       "services": 41,
@@ -148,7 +148,7 @@
   "lifeFarms": {
     "idealFarm": {
       "goal": 30,
-      "done": 43
+      "done": 44
     },
     "fullSizeFarm": {
       "goal": 10,
@@ -156,7 +156,7 @@
     },
     "totalChampions": {
       "goal": 40,
-      "done": 53
+      "done": 54
     },
     "basicFarm": {
       "goal": 118,
@@ -172,7 +172,7 @@
     },
     "monthly": [
       0,
-      0,
+      6,
       0,
       0,
       0,
@@ -200,12 +200,29 @@
     ]
   },
   "meps": null,
-  "sharkTank": null,
+  "sharkTank": {
+    "winners": 9,
+    "pdvCost": 2509.98,
+    "monthly": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      3,
+      0,
+      0,
+      0,
+      6,
+      0
+    ]
+  },
   "evangelism": {
-    "bibles": 82,
+    "bibles": 90,
     "vbsCamps": 14,
-    "childrenVBS": 421,
-    "personasAlcanzadas": 995,
+    "childrenVBS": 429,
+    "personasAlcanzadas": 1060,
     "monthly": [
       0,
       0,
@@ -223,28 +240,28 @@
   },
   "beneficiaries": {
     "combined": {
-      "accounts": 654,
-      "beneficiaries": 2439,
-      "girls": 362,
-      "boys": 372,
-      "newFamilies": 35,
-      "newUB": 119
+      "accounts": 657,
+      "beneficiaries": 2452,
+      "girls": 365,
+      "boys": 373,
+      "newFamilies": 39,
+      "newUB": 136
     },
     "quito": {
-      "accounts": 361,
-      "beneficiaries": 1211,
-      "girls": 219,
-      "boys": 225,
-      "newFamilies": 23,
-      "newUB": 78
+      "accounts": 364,
+      "beneficiaries": 1221,
+      "girls": 222,
+      "boys": 226,
+      "newFamilies": 26,
+      "newUB": 90
     },
     "imbabura": {
       "accounts": 275,
-      "beneficiaries": 1173,
+      "beneficiaries": 1176,
       "girls": 143,
       "boys": 147,
-      "newFamilies": 12,
-      "newUB": 41
+      "newFamilies": 13,
+      "newUB": 46
     }
   },
   "christmas": {
@@ -285,15 +302,15 @@
   },
   "level1": {
     "individualsServed": null,
-    "totalCost": 3147.3
+    "totalCost": 3227.54
   },
   "level2": {
     "individualsServed": null,
-    "totalCost": 4309.24
+    "totalCost": 4394.24
   },
   "level3": {
     "individualsServed": null,
     "totalCost": null
   },
-  "lastUpdated": "2026-04-28T15:31:05.196Z"
+  "lastUpdated": "2026-05-06T20:33:00.313Z"
 }
